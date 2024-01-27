@@ -1,6 +1,8 @@
 from abc import ABC
 from dataclasses import dataclass
 
+# mgoni shesacvleli
+
 
 @dataclass
 class Currency(ABC):
