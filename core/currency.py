@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 
-# mgoni shesacvleli
+# test1
 
 
 @dataclass
