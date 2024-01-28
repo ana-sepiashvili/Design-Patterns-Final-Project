@@ -1,0 +1,10 @@
+class ThreeWalletsError(Exception):
+    pass
+
+
+class ExistsError(Exception):
+    pass
+
+
+class DoesNotExistError(Exception):
+    pass

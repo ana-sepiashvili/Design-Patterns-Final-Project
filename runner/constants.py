@@ -10,5 +10,3 @@ TEST_DATABASE_NAME = "testing.db"
 #
 # RECEIPTS_TABLE_NAME = "Receipts"
 # RECEIPTS_TABLE_COLUMNS = "id TEXT, status TEXT, total INTEGER"
-
-
