@@ -15,3 +15,6 @@ class RepositoryAccess(Protocol[T]):
 
     def execute_insert(self, insert: T) -> None:
         pass
+
+    def execute_side_query(self, query: None | T) -> list[T]:
+        pass

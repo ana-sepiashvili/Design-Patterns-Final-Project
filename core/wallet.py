@@ -1,37 +1,39 @@
-import uuid
-from dataclasses import dataclass
-from uuid import UUID
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
 
-from core.errors import ThreeWalletsError
+from core.errors import ThreeWalletsError, DoesNotExistError
 from infra.repositories.repository_access_generic import RepositoryAccess
 
 
 @dataclass
 class Wallet:
-    wallet_id: UUID | None
     owner_id: UUID | None
     balance: float | None
+
+    wallet_id: UUID | None = field(default_factory=uuid4)
 
 
 @dataclass
 class WalletRepository:
     repository: RepositoryAccess[Wallet]
 
-    def get_all_products(self) -> list[Wallet]:
-        return self.repository.execute_query(None)
-
     def get_wallet_with_wallet_id(self, wallet_id: UUID) -> Wallet:
-        result = self.repository.execute_query(Wallet(wallet_id, None, None))
+        result = self.repository.execute_query(Wallet(None, None, wallet_id))
         return result[0]
 
-    def get_wallets_with_owner_id(self, owner_id: UUID) -> list[Wallet]:
-        return self.repository.execute_query(Wallet(None, owner_id, None))
+    def get_wallets_with_owner_id(self, owner_id: UUID | None) -> list[Wallet]:
+        return self.repository.execute_query(Wallet(owner_id, None, None))
 
-    def create_new_wallet(self, owner_id: UUID) -> None:
-        existing = self.get_wallets_with_owner_id(owner_id)
+    def create_new_wallet(self, wallet: Wallet) -> None:
+        wallet_id = wallet.wallet_id
+        owner_id = wallet.owner_id
+        existing = self.get_wallets_with_owner_id(wallet.owner_id)
         if len(existing) == 3:
             raise ThreeWalletsError
-        self.repository.execute_insert(Wallet(uuid.UUID(), owner_id, 100000000))
+        self.repository.execute_insert(Wallet(owner_id, 100000000, wallet_id))
 
-    def update_wallet(self, wallet: Wallet) -> None:
-        return self.repository.execute_update(wallet)
+    def get_wallet_transactions(self, wallet_id: UUID) -> None:
+        exists = self.get_wallet_with_wallet_id(wallet_id)
+        if exists is None:
+            raise DoesNotExistError
+        self.repository.execute_side_query(Wallet(None, None, wallet_id))
