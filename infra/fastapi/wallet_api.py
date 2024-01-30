@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from core.errors import ThreeWalletsError, DoesNotExistError
+from core.errors import DoesNotExistError, ThreeWalletsError
 from core.wallet import Wallet
 from infra.fastapi.dependables import WalletDep
 
@@ -73,8 +73,9 @@ def get_wallet_transactions(
     wallet_id: UUID, wallets: WalletDep
 ) -> dict[str, Any] | JSONResponse:
     try:
-        transactions = wallets.get_all_transactions(wallet_id)
-        return {"transactions": transactions}
+        # transactions = wallets.get_all_transactions(wallet_id)
+        # return {"transactions": transactions}
+        pass
     except DoesNotExistError:
         message = {"message": f"Wallet with id<{wallet_id}> does not exist."}
         content = {"error": message}

@@ -41,14 +41,3 @@ class WalletSQLAccess(RepositoryAccess[Wallet]):
         cursor = self.cursor
         cursor.execute(insert_cmd)
         cursor.connection.commit()
-
-    def execute_side_query(self, query: Wallet | None) -> list:
-        query_cmd: str = f"select * from transactions where to_id = {query.wallet_id} or from_id = {query.wallet_id}"
-        result = []
-        cursor = self.cursor
-        cursor.execute(query_cmd)
-        items = cursor.fetchall()
-        for item in items:
-            # result.append(Wallet(item[0], item[1], item[2]))
-            pass
-        return result

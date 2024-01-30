@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from uuid import UUID, uuid4
 
-from core.errors import ThreeWalletsError, DoesNotExistError
+from core.errors import DoesNotExistError, ThreeWalletsError
 from infra.repositories.repository_access_generic import RepositoryAccess
 
 
@@ -19,6 +19,8 @@ class WalletRepository:
 
     def get_wallet_with_wallet_id(self, wallet_id: UUID) -> Wallet:
         result = self.repository.execute_query(Wallet(None, None, wallet_id))
+        if len(result) == 0:
+            raise DoesNotExistError
         return result[0]
 
     def get_wallets_with_owner_id(self, owner_id: UUID | None) -> list[Wallet]:
@@ -31,9 +33,3 @@ class WalletRepository:
         if len(existing) == 3:
             raise ThreeWalletsError
         self.repository.execute_insert(Wallet(owner_id, 100000000, wallet_id))
-
-    def get_wallet_transactions(self, wallet_id: UUID) -> None:
-        exists = self.get_wallet_with_wallet_id(wallet_id)
-        if exists is None:
-            raise DoesNotExistError
-        self.repository.execute_side_query(Wallet(None, None, wallet_id))

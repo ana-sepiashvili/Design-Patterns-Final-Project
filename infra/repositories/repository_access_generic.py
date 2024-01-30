@@ -1,4 +1,4 @@
-from typing import TypeVar, Protocol
+from typing import Protocol, TypeVar
 
 T = TypeVar("T")
 
@@ -14,7 +14,4 @@ class RepositoryAccess(Protocol[T]):
         pass
 
     def execute_insert(self, insert: T) -> None:
-        pass
-
-    def execute_side_query(self, query: None | T) -> list[T]:
         pass
