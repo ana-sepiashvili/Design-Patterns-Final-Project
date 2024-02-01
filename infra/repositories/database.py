@@ -24,5 +24,5 @@ class DatabaseHandler:
     def create_table(self, table_name: str, columns: str) -> None:
         with self.connect() as connection:
             cursor = connection.cursor()
-            cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+            # cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns})")

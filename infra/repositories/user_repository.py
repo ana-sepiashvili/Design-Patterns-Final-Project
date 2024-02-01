@@ -2,24 +2,40 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 from uuid import UUID
 
-from core.errors import DoesNotExistError, ExistsError
+from core.errors import ExistsError
 from core.user import User
 from infra.repositories.database import DatabaseHandler
+from runner.constants import USERS_TABLE_COLUMNS, USERS_TABLE_NAME
+
+
+class UserRepository(Protocol):
+    def create(self) -> None:
+        pass
+
+    def add(self, user: User) -> None:
+        pass
+
+    def exists(self, user_id: UUID) -> bool:
+        pass
+
+    def __exists(self, field_name: str, value: Any) -> bool:
+        pass
+
+    def clear(self) -> None:
+        pass
 
 
 @dataclass
-class UserRepository:
+class SqlUserRepository:
     database: DatabaseHandler
 
     def __post_init__(self) -> None:
-        self.table: str = "users"
-        self.fields: str = "(id UUID UNIQUE, " "email TEXT NOT NULL UNIQUE)"
+        self.table: str = USERS_TABLE_NAME
+        self.columns: str = USERS_TABLE_COLUMNS
         self.create()
 
     def create(self) -> None:
-        with self.database.connect() as connection:
-            cursor = connection.cursor()
-            cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.table} ({self.fields})")
+        self.database.create_table(self.table, self.columns)
 
     def add(self, user: User) -> None:
         if self.__exists("email", user.get_email()):
@@ -43,3 +59,8 @@ class UserRepository:
             if len(result) == 0:
                 return False
             return True
+
+    def clear(self) -> None:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            cursor.execute(f"DELETE FROM {self.table}")

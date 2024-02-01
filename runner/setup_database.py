@@ -1,4 +1,5 @@
 from infra.repositories.database import DatabaseHandler
+from runner.cli import cli
 from runner.constants import DATABASE_NAME
 
 
@@ -11,3 +12,4 @@ def create_database(db_name: str) -> None:
 
 if __name__ == "__main__":
     create_database(DATABASE_NAME)
+    cli()

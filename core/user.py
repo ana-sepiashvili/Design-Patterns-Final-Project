@@ -4,11 +4,10 @@ from uuid import UUID, uuid4
 
 
 class UserProtocol(Protocol):
-
     def get_email(self) -> str:
         pass
 
-    def get_id(self) -> str:
+    def get_id(self) -> UUID:
         pass
 
 
@@ -20,5 +19,5 @@ class User:
     def get_email(self) -> str:
         return self.email
 
-    def get_id(self) -> str:
-        return str(self.id)
+    def get_id(self) -> UUID:
+        return self.id
