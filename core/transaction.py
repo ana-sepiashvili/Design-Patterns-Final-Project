@@ -26,7 +26,7 @@ class Transaction:
     from_id: UUID
     to_id: UUID
     bitcoin_amount: float
-    bitcoin_fee: float
+    bitcoin_fee: float = 0
 
     id: UUID = field(default_factory=uuid4)
 
