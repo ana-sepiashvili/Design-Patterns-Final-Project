@@ -1,4 +1,4 @@
-import uuid
+from uuid import UUID
 
 from core.errors import DoesNotExistError, ThreeWalletsError
 from core.wallet import Wallet
@@ -32,24 +32,18 @@ class SqlWalletRepository:
                 )
                 connection.commit()
 
-    def read_with_criteria(self, wallet: Wallet) -> Wallet:
+    def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
         with self.database.connect() as connection:
             cursor = connection.cursor()
-            if wallet.wallet_id is not None:
-                cursor.execute(
-                    f"SELECT * FROM {self.table_name}"
-                    f" WHERE wallet_id = {wallet.wallet_id}"
-                )
-            elif wallet.owner_id is not None:
-                cursor.execute(
-                    f"SELECT * FROM {self.table_name}"
-                    f" WHERE owner_id = {wallet.owner_id}"
-                )
+            cursor.execute(
+                f"SELECT * FROM {self.table_name}"
+                f" WHERE wallet_id = {wallet_id}"
+            )
             values = cursor.fetchone()
             if values is None:
                 raise DoesNotExistError()
             else:
-                return Wallet(uuid.UUID(values[1]), values[2], uuid.UUID(values[0]))
+                return Wallet(UUID(values[1]), values[2], UUID(values[0]))
 
     def make_transaction(self, transaction: list) -> None:
         with self.database.connect() as connection:

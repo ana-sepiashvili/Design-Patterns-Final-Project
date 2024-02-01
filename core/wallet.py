@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 @dataclass
 class Wallet:
-    owner_id: UUID | None
-    balance: float | None
+    owner_id: UUID
+    balance: float
 
-    wallet_id: UUID | None = field(default_factory=uuid4)
+    wallet_id: UUID = field(default_factory=uuid4)

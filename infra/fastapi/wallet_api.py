@@ -28,7 +28,7 @@ class TransacListResp(BaseModel):
 
 
 @wallet_api.post("/wallet", status_code=201, response_model=WalletResp)
-def create_product(
+def create_wallet(
     request: CreateWalletReqt, wallets: WalletDep
 ) -> dict[str, Any] | JSONResponse:
     wallet = Wallet(**request.dict())
@@ -50,7 +50,7 @@ def create_product(
 @wallet_api.get("/wallet/{wallet_id}", status_code=200, response_model=WalletResp)
 def get_wallet(wallet_id: UUID, wallets: WalletDep) -> dict[str, Any] | JSONResponse:
     try:
-        wallet = wallets.read_with_criteria(Wallet(None, None, wallet_id))
+        wallet = wallets.read_with_wallet_id(wallet_id)
         result = {
             "wallet_id": wallet.wallet_id,
             "balance_btc": wallet.balance,
