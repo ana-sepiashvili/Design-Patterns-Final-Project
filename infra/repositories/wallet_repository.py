@@ -19,7 +19,7 @@ class SqlWalletRepository:
             cursor = connection.cursor()
             cursor.execute(
                 f"SELECT * FROM {self.table_name} "
-                f"WHERE owner_id = {wallet.owner_id}"
+                f"WHERE owner_id = {wallet.get_owner_id()}"
             )
             elems = cursor.fetchall()
             if len(elems) == 3:
@@ -28,7 +28,7 @@ class SqlWalletRepository:
                 query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?)"
                 cursor.execute(
                     query,
-                    (wallet.wallet_id, wallet.owner_id, wallet.balance),
+                    (wallet.get_id(), wallet.owner_id, wallet.balance),
                 )
                 connection.commit()
 

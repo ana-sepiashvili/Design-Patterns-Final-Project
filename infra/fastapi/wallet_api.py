@@ -36,14 +36,14 @@ def create_wallet(
     try:
         wallets.add(wallet)
     except ThreeWalletsError:
-        err_msg = f"User with id<{wallet.owner_id}> already has 3 wallets."
+        err_msg = f"User with id<{wallet.get_owner_id()}> already has 3 wallets."
         message = {"message": err_msg}
         content = {"error": message}
         return JSONResponse(
             status_code=409,
             content=content,
         )
-    result = {"wallet_id": wallet.wallet_id, "balance_btc": 1, "balance_usd": 42316.90}
+    result = {"wallet_id": wallet.get_id(), "balance_btc": 1, "balance_usd": 42316.90}
     return {"wallet": result}
 
 
@@ -52,9 +52,9 @@ def get_wallet(wallet_id: UUID, wallets: WalletDep) -> dict[str, Any] | JSONResp
     try:
         wallet = wallets.read_with_wallet_id(wallet_id)
         result = {
-            "wallet_id": wallet.wallet_id,
-            "balance_btc": wallet.balance,
-            "balance_usd": wallet.balance * 42316.90,
+            "wallet_id": wallet.get_id(),
+            "balance_btc": wallet.get_balance(),
+            "balance_usd": wallet.get_balance() * 42316.90,
         }
         return {"wallet": result}
     except DoesNotExistError:

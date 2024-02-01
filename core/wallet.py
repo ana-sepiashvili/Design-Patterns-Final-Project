@@ -7,4 +7,13 @@ class Wallet:
     owner_id: UUID
     balance: float
 
-    wallet_id: UUID = field(default_factory=uuid4)
+    id: UUID = field(default_factory=uuid4)
+
+    def get_owner_id(self) -> UUID:
+        return self.owner_id
+
+    def get_id(self) -> UUID:
+        return self.id
+
+    def get_balance(self) -> float:
+        return self.balance
