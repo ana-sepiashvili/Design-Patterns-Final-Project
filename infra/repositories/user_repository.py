@@ -20,6 +20,7 @@ class UserRepository:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(f"CREATE TABLE IF NOT EXISTS {self.table} ({self.fields})")
+            connection.commit()
 
     def add(self, user: User) -> None:
         if self.__exists("email", user.get_email()):

@@ -12,7 +12,7 @@ def get_user_repository(request: Request) -> UserRepository:
 
 
 def get_wallet_repo(request: Request) -> SqlWalletRepository:
-    return request.app.state.units  # type: ignore
+    return request.app.state.wallets  # type: ignore
 
 
 UserRepositoryDependable = Annotated[UserRepository, Depends(get_user_repository)]

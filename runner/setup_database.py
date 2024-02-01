@@ -1,5 +1,5 @@
 from infra.repositories.database import DatabaseHandler
-from runner.constants import DATABASE_NAME
+from runner.constants import TEST_DATABASE_NAME
 
 
 def create_database(db_name: str) -> None:
@@ -10,4 +10,4 @@ def create_database(db_name: str) -> None:
 
 
 if __name__ == "__main__":
-    create_database(DATABASE_NAME)
+    create_database(TEST_DATABASE_NAME)
