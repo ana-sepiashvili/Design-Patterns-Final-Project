@@ -1,3 +1,4 @@
+from typing import Protocol
 from uuid import UUID
 
 from core.errors import DoesNotExistError, ThreeWalletsError
@@ -5,12 +6,32 @@ from core.wallet import Wallet
 from infra.repositories.database import DatabaseHandler
 
 
+class GenericWalletRepository(Protocol):
+    def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
+        pass
+
+    def create(self) -> None:
+        pass
+
+    def add(self, wallet: Wallet) -> None:
+        pass
+
+    def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
+        pass
+
+    def has_same_owner(self, wallet_id1: UUID, wallet_id2: UUID) -> bool:
+        pass
+
+    def make_transaction(self, transaction: list) -> None:
+        pass
+
+
 class SqlWalletRepository:
-    def __init__(self, database: DatabaseHandler, table_name: str, columns: str):
-        self.database = database
-        self.table_name = table_name
-        self.columns = columns
-        database.create_table(self.table_name, self.columns)
+    def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
+        self.database = db
+        self.table_name = table
+        self.columns = vals
+        db.create_table(self.table_name, self.columns)
 
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
