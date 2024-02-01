@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from core.errors import DoesNotExistError, ExistsError
 from core.transaction import Transaction
+from infra.fastapi.dependables import TransactionRepositoryDependable
 
 transaction_api = APIRouter(tags=["Transactions"])
 
