@@ -1,43 +1,72 @@
-import sqlite3
+import uuid
 
+from core.errors import DoesNotExistError, ThreeWalletsError
 from core.wallet import Wallet
-from infra.repositories.repository_access_generic import RepositoryAccess
+from infra.repositories.database import DatabaseHandler
 
 
-class WalletSQLAccess(RepositoryAccess[Wallet]):
-    def __init__(self, database_str: str) -> None:
-        connection = sqlite3.connect(database_str, check_same_thread=False)
-        cursor = connection.cursor()
-        self.cursor = cursor
+class SqlWalletRepository:
+    def __init__(self, database: DatabaseHandler, table_name: str, columns: str):
+        self.database = database
+        self.table_name = table_name
+        self.columns = columns
 
-    def execute_query(self, query: None | Wallet) -> list[Wallet]:
-        query_cmd: str = "select * from products"
-        if query is not None:
-            if query.wallet_id is not None:
-                query_cmd += f"where wallet_id = {query.wallet_id}"
-            elif query.owner_id is not None:
-                query_cmd += f"where owner_id = {query.owner_id}"
-        result = []
-        cursor = self.cursor
-        cursor.execute(query_cmd)
-        items = cursor.fetchall()
-        for item in items:
-            result.append(Wallet(item[0], item[1], item[2]))
-        return result
+    def create(self) -> None:
+        self.database.create_table(self.table_name, self.columns)
 
-    def execute_update(self, update: Wallet) -> None:
-        update_cmd: str = (
-            f"update wallets set balance ={update.balance}"
-            f" where wallet_id = {update.wallet_id}"
-        )
-        cursor = self.cursor
-        cursor.execute(update_cmd)
-        self.cursor.connection.commit()
+    def add(self, wallet: Wallet) -> None:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                f"SELECT * FROM {self.table_name} "
+                f"WHERE owner_id = {wallet.owner_id}"
+            )
+            elems = cursor.fetchall()
+            if len(elems) == 3:
+                raise ThreeWalletsError
+            else:
+                query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?)"
+                cursor.execute(
+                    query,
+                    (wallet.wallet_id, wallet.owner_id, wallet.balance),
+                )
+                connection.commit()
 
-    def execute_insert(self, insert: Wallet) -> None:
-        arguments = f"{insert.wallet_id}, "
-        arguments += f"{insert.owner_id}, {insert.balance}"
-        insert_cmd: str = f"insert into products values ({arguments})"
-        cursor = self.cursor
-        cursor.execute(insert_cmd)
-        cursor.connection.commit()
+    def read_with_criteria(self, wallet: Wallet) -> Wallet:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            if wallet.wallet_id is not None:
+                cursor.execute(
+                    f"SELECT * FROM {self.table_name}"
+                    f" WHERE wallet_id = {wallet.wallet_id}"
+                )
+            elif wallet.owner_id is not None:
+                cursor.execute(
+                    f"SELECT * FROM {self.table_name}"
+                    f" WHERE owner_id = {wallet.owner_id}"
+                )
+            values = cursor.fetchone()
+            if values is None:
+                raise DoesNotExistError()
+            else:
+                return Wallet(uuid.UUID(values[1]), values[2], uuid.UUID(values[0]))
+
+    def make_transaction(self, transaction: list) -> None:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            cursor.execute(f"SELECT * FROM {self.table_name} WHERE id = ?", ())
+            values1 = cursor.fetchone()
+            cursor.execute(f"SELECT * FROM {self.table_name} WHERE id = ?", ())
+            values2 = cursor.fetchone()
+            if values1 is None or values2 is None:
+                raise DoesNotExistError()
+            else:
+                cursor.execute(
+                    f"UPDATE {self.table_name} SET balance = {transaction}"
+                    f"WHERE id = '{values1}'"
+                )
+                cursor.execute(
+                    f"UPDATE {self.table_name} SET balance = {transaction}"
+                    f" WHERE id = '{values2}'"
+                )
+                connection.commit()

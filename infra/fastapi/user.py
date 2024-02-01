@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from core.errors import DoesNotExistError, ExistsError
+from core.errors import ExistsError
 from core.user import User
 from infra.fastapi.dependables import UserRepositoryDependable
 

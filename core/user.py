@@ -4,7 +4,6 @@ from uuid import UUID, uuid4
 
 
 class UserProtocol(Protocol):
-
     def get_email(self) -> str:
         pass
 
