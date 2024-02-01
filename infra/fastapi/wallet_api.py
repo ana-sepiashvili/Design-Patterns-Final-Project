@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from core.errors import DoesNotExistError, ThreeWalletsError
 from core.wallet import Wallet
-from infra.fastapi.dependables import WalletDep
+from infra.fastapi.dependables import WalletRepositoryDependable, TransactionRepositoryDependable
 
 wallet_api = APIRouter(tags=["Wallets"])
 
@@ -27,13 +27,21 @@ class WalletResp(BaseModel):
     wallet: WalletSingle
 
 
-class TransacListResp(BaseModel):
-    transactions: list
+class TransactionItem(BaseModel):
+    transaction_id: str
+    from_id: str
+    to_id: str
+    bitcoin_amount: float
+    bitcoin_fee: float
+
+
+class TransactionListResp(BaseModel):
+    transactions: list[TransactionItem]
 
 
 @wallet_api.post("/wallets", status_code=201, response_model=WalletResp)
 def create_wallet(
-    request: CreateWalletReqt, wallets: WalletDep
+        request: CreateWalletReqt, wallets: WalletRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     wallet = Wallet(**request.dict())
     print("inpost")
@@ -60,7 +68,7 @@ def create_wallet(
                 status_code=200,
                 response_model=WalletResp)
 def get_wallet(wallet_id: UUID,
-               wallets: WalletDep) -> (dict[str, Any] | JSONResponse):
+               wallets: WalletRepositoryDependable) -> (dict[str, Any] | JSONResponse):
     try:
         wallet = wallets.read_with_wallet_id(wallet_id)
         result = {
@@ -81,14 +89,14 @@ def get_wallet(wallet_id: UUID,
 @wallet_api.get(
     "/wallets/{address}/transactions",
     status_code=200,
-    response_model=TransacListResp
+    response_model=TransactionListResp
 )
 def get_wallet_transactions(
-    wallet_id: UUID, wallets: WalletDep
+        wallet_id: UUID, transactions: TransactionRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
-        # transactions = wallets.get_all_transactions(wallet_id)
-        # return {"transactions": transactions}
+        transactions = transactions.read_wallet_transactions(wallet_id)
+        return {"transactions": transactions}
         pass
     except DoesNotExistError:
         message = {"message": f"Wallet with id<{wallet_id}> does not exist."}

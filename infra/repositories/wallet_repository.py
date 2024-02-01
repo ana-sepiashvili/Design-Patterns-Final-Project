@@ -6,7 +6,7 @@ from core.wallet import Wallet
 from infra.repositories.database import DatabaseHandler
 
 
-class GenericWalletRepository(Protocol):
+class WalletRepository(Protocol):
     def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
         pass
 
@@ -26,7 +26,7 @@ class GenericWalletRepository(Protocol):
         pass
 
 
-class SqlWalletRepository:
+class SqlWalletRepository(WalletRepository):
     def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
         self.database = db
         self.table_name = table
