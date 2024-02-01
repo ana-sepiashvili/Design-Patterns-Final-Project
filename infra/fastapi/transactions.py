@@ -7,12 +7,12 @@ from starlette.responses import JSONResponse
 
 from core.errors import DoesNotExistError, ExistsError
 from core.transaction import Transaction
+from infra.fastapi.dependables import TransactionRepositoryDependable, WalletDep
 
 transaction_api = APIRouter(tags=["Transactions"])
 
 
 class MakeTransactionRequest(BaseModel):
-    transaction_id: UUID
     from_id: UUID
     to_id: UUID
     amount: float
@@ -38,71 +38,68 @@ class ProductListEnvelope(BaseModel):
 def make_transaction(
     request: MakeTransactionRequest,
     transactions: TransactionRepositoryDependable,
-    units: UnitRepositoryDependable,
+    wallets: WalletDep,
 ) -> dict[str, Any] | JSONResponse:
-    transaction = Transaction(**request.model_dump())
+    args = request.model_dump()
+    if wallets.has_same_owner(args["from_id"], args["to_id"]):
+        transaction = Transaction(**request.model_dump())
+    else:
+        transaction = Transaction(
+            args["from_id"],
+            args["to_id"],
+            args["amount"] * 0.985,
+            args["amount"] * 0.015,
+        )
     try:
-        units.read(transaction.get_unit_id())
-        try:
-            transactions.add(transaction)
-            return {"product": transaction}
-        except ExistsError:
-            return JSONResponse(
-                status_code=409,
-                content={
-                    "error": {
-                        "message": f"Product with "
-                        f"barcode<{transaction.get_barcode()}> already exists."
-                    }
-                },
-            )
+        transactions.add(transaction)
+        wallets.make_transaction(transaction)
     except DoesNotExistError:
         return JSONResponse(
             status_code=404,
             content={
                 "error": {
-                    "message": f"Unit with id<{transaction.get_unit_id()}> does not exist."
+                    # "message": f"Walled with id<{args["from_id" an to_id]}> does not exist."
                 }
             },
         )
 
 
-@product_api.get(
-    "/products/{product_id}", status_code=200, response_model=UserItemEnvelope
-)
-def read_product(
-    product_id: UUID, products: ProductRepositoryDependable
-) -> dict[str, Product] | JSONResponse:
-    try:
-        product = products.read(product_id)
-        return {"product": product}
-    except DoesNotExistError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "error": {"message": f"Product with id<{product_id}> does not exist."}
-            },
-        )
-
-
-@product_api.get("/products", status_code=200, response_model=ProductListEnvelope)
-def read_all(products: ProductRepositoryDependable) -> dict[str, Any]:
-    return {"products": products.read_all()}
-
-
-@product_api.patch("/products/{product_id}", status_code=200, response_model=Dict)
-def update_product(
-    product_id: UUID,
-    request: UpdateProductRequest,
-    products: ProductRepositoryDependable,
-) -> dict[str, Any] | JSONResponse:
-    try:
-        products.update(product_id, **request.model_dump())
-        return {}
-    except DoesNotExistError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "error": {"message": f"Product with id<{product_id}> does not exist."}
-            },
-        )
+# @product_api.get(
+#     "/products/{product_id}", status_code=200, response_model=UserItemEnvelope
+# )
+# def read_product(
+#     product_id: UUID, products: ProductRepositoryDependable
+# ) -> dict[str, Product] | JSONResponse:
+#     try:
+#         product = products.read(product_id)
+#         return {"product": product}
+#     except DoesNotExistError:
+#         return JSONResponse(
+#             status_code=404,
+#             content={
+#                 "error": {"message": f"Product with id<{product_id}> does not exist."}
+#             },
+#         )
+#
+#
+# @product_api.get("/products", status_code=200, response_model=ProductListEnvelope)
+# def read_all(products: ProductRepositoryDependable) -> dict[str, Any]:
+#     return {"products": products.read_all()}
+#
+#
+# @product_api.patch("/products/{product_id}", status_code=200, response_model=Dict)
+# def update_product(
+#     product_id: UUID,
+#     request: UpdateProductRequest,
+#     products: ProductRepositoryDependable,
+# ) -> dict[str, Any] | JSONResponse:
+#     try:
+#         products.update(product_id, **request.model_dump())
+#         return {}
+#     except DoesNotExistError:
+#         return JSONResponse(
+#             status_code=404,
+#             content={
+#                 "error": {"message": f"Product with id<{product_id}> does not exist."}
+#             },
+#         )
