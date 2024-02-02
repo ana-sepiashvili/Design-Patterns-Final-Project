@@ -87,7 +87,7 @@ def get_wallet(wallet_id: UUID,
 
 
 @wallet_api.get(
-    "/wallets/{address}/transactions",
+    "/wallets/{wallet_id}/transactions",
     status_code=200,
     response_model=TransactionListResp
 )
