@@ -47,7 +47,7 @@ class SqlWalletRepository(WalletRepository):
             )
             values = cursor.fetchone()
             if values is None:
-                raise DoesNotExistError()
+                raise DoesNotExistError(str(wallet_id))
             else:
                 return Wallet(UUID(values[1]), values[2], UUID(values[0]))
 
