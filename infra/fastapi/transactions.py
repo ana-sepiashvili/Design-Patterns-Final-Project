@@ -9,7 +9,6 @@ from core.errors import DoesNotExistError, ExistsError
 from core.transaction import Transaction
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
-    WalletDep,
     UserRepositoryDependable,
 )
 from runner.constants import TRANSACTION_FEE
