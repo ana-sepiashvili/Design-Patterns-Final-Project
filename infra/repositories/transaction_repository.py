@@ -39,7 +39,7 @@ class SqlTransactionRepository:
             )
             values = cursor.fetchall()
             if len(values) == 0:
-                raise DoesNotExistError(user_id)
+                raise DoesNotExistError(str(user_id))
             else:
                 result = [
                     Transaction(
@@ -65,7 +65,7 @@ class SqlTransactionRepository:
             )
             values = cursor.fetchall()
             if len(values) == 0:
-                raise DoesNotExistError(wallet_id)
+                raise DoesNotExistError(str(wallet_id))
             else:
                 result = [
                     Transaction(
