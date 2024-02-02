@@ -101,11 +101,19 @@ def test_should_get_transactions(client: TestClient) -> None:
     response = client.post("/wallets", json=wallet2)
     wallet2_id = response.json()["wallet"]["wallet_id"]
 
-    fake_transaction = {"from_id": str(wallet1_id), "to_id": str(wallet2_id), "bitcoin_amount": 3}
+    print("MADE BOTH")
+    fake_trans_dict = {
+        "from_id": str(wallet1_id),
+        "to_id": str(wallet2_id),
+        "bitcoin_amount": 3,
+    }
+    fake_transaction = Fake().transaction(fake_trans_dict)
     response = client.post("/transactions", json=fake_transaction)
+    print("ADD TRANS")
     print(response.json())
     print(response.status_code)
     response = client.get(f"/wallets/{wallet1_id}/transactions")
+    print("GOT trans")
     print(response)
     assert response.status_code == 200
 

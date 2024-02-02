@@ -96,12 +96,22 @@ def get_wallet_transactions(
     wallet_id: UUID, transactions: TransactionRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
-        print("AAAAAAAAAAAAA")
+        print("trellelellelelelelele")
         transactions = transactions.read_wallet_transactions(wallet_id)
-        print(transactions)
-        return {"transactions": transactions}
-    except DoesNotExistError:
-        message = {"message": f"Wallet with id<{wallet_id}> does not exist."}
+        print(type(transactions))
+        result = []
+        for transaction in transactions:
+            result.append({
+                "transaction_id": transaction.get_id(),
+                "from_id": transaction.get_from_id(),
+                "to_id": transaction.get_to_id(),
+                "bitcoin_amount": transaction.get_bitcoin_amount(),
+                "bitcoin_fee": transaction.get_bitcoin_fee()
+            })
+        return {"transactions": result}
+    except DoesNotExistError as e:
+        print("trolololol")
+        message = {"message": f"Wallet with id<{e.get_id()}> does not exist."}
         content = {"error": message}
         return JSONResponse(
             status_code=404,

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from core.errors import DoesNotExistError, ThreeWalletsError, NotEnoughMoneyError
+from core.errors import DoesNotExistError, NotEnoughMoneyError, ThreeWalletsError
 from core.transaction import TransactionProtocol
 from core.wallet import Wallet, WalletRepository
 from infra.repositories.database import DatabaseHandler
