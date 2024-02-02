@@ -17,3 +17,5 @@ TRANSACTIONS_TABLE_NAME = "Transactions"
 TRANSACTIONS_TABLE_COLUMNS = (
     "id TEXT, from_id TEXT, to_id TEXT, bitcoin_amount DOUBLE, bitcoin_fee DOUBLE"
 )
+
+TRANSACTION_FEE = 0.015

@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 from uuid import UUID
 
 from core.errors import DoesNotExistError
@@ -40,7 +39,7 @@ class SqlTransactionRepository:
             )
             values = cursor.fetchall()
             if len(values) == 0:
-                raise DoesNotExistError(user_id)
+                raise DoesNotExistError(str(user_id))
             else:
                 result = [
                     Transaction(
@@ -54,7 +53,7 @@ class SqlTransactionRepository:
                 ]
                 return result
 
-    def read_wallet_transactions(self, wallet_id: UUID) -> list[Transaction]:
+    def read_wallet_transactions(self, wallet_id: UUID) -> TransactionProtocol:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -66,7 +65,7 @@ class SqlTransactionRepository:
             )
             values = cursor.fetchall()
             if len(values) == 0:
-                raise DoesNotExistError(wallet_id)
+                raise DoesNotExistError(str(wallet_id))
             else:
                 result = [
                     Transaction(

@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -7,7 +7,11 @@ from starlette.responses import JSONResponse
 
 from core.errors import DoesNotExistError, ExistsError
 from core.transaction import Transaction
-from infra.fastapi.dependables import TransactionRepositoryDependable, WalletDep
+from infra.fastapi.dependables import (
+    TransactionRepositoryDependable,
+    UserRepositoryDependable,
+)
+from runner.constants import TRANSACTION_FEE
 
 transaction_api = APIRouter(tags=["Transactions"])
 
@@ -18,23 +22,33 @@ class MakeTransactionRequest(BaseModel):
     amount: float
 
 
+class ReadUserTransactionsRequest(BaseModel):
+    user_id: UUID
+
+
 class UpdateProductRequest(BaseModel):
     price: int
 
 
-class UserItem(BaseModel):
+class TransactionItem(BaseModel):
     id: UUID
+    from_id: UUID
+    to_id: UUID
+    bitcoin_amount: float
+    bitcoin_fee: float
 
 
-class UserItemEnvelope(BaseModel):
-    user: UserItem
+class TransactionItemEnvelope(BaseModel):
+    transaction: TransactionItem
 
 
-class ProductListEnvelope(BaseModel):
-    products: list[UserItem]
+class TransactionListEnvelope(BaseModel):
+    products: list[TransactionItem]
 
 
-@transaction_api.post("/transactions", status_code=201, response_model=UserItemEnvelope)
+@transaction_api.post(
+    "/transactions", status_code=201, response_model=TransactionItemEnvelope
+)
 def make_transaction(
     request: MakeTransactionRequest,
     transactions: TransactionRepositoryDependable,
@@ -47,59 +61,39 @@ def make_transaction(
         transaction = Transaction(
             args["from_id"],
             args["to_id"],
-            args["amount"] * 0.985,
-            args["amount"] * 0.015,
+            args["amount"] * (1 - TRANSACTION_FEE),
+            args["amount"] * TRANSACTION_FEE,
         )
     try:
         transactions.add(transaction)
         wallets.make_transaction(transaction)
-    except DoesNotExistError:
+        return {"transaction": transaction}
+    except DoesNotExistError as e:
         return JSONResponse(
             status_code=404,
             content={
-                "error": {
-                    "message": f"Walled with id<{args["from_id" an to_id]}> does not exist."
-                }
+                "error": {"message": f"Walled with id<{e.get_id()}> does not exist."}
             },
         )
 
 
-# @product_api.get(
-#     "/products/{product_id}", status_code=200, response_model=UserItemEnvelope
-# )
-# def read_product(
-#     product_id: UUID, products: ProductRepositoryDependable
-# ) -> dict[str, Product] | JSONResponse:
-#     try:
-#         product = products.read(product_id)
-#         return {"product": product}
-#     except DoesNotExistError:
-#         return JSONResponse(
-#             status_code=404,
-#             content={
-#                 "error": {"message": f"Product with id<{product_id}> does not exist."}
-#             },
-#         )
-#
-#
-# @product_api.get("/products", status_code=200, response_model=ProductListEnvelope)
-# def read_all(products: ProductRepositoryDependable) -> dict[str, Any]:
-#     return {"products": products.read_all()}
-#
-#
-# @product_api.patch("/products/{product_id}", status_code=200, response_model=Dict)
-# def update_product(
-#     product_id: UUID,
-#     request: UpdateProductRequest,
-#     products: ProductRepositoryDependable,
-# ) -> dict[str, Any] | JSONResponse:
-#     try:
-#         products.update(product_id, **request.model_dump())
-#         return {}
-#     except DoesNotExistError:
-#         return JSONResponse(
-#             status_code=404,
-#             content={
-#                 "error": {"message": f"Product with id<{product_id}> does not exist."}
-#             },
-#         )
+@transaction_api.get(
+    "/transactions", status_code=200, response_model=TransactionListEnvelope
+)
+def read_user_transactions(
+    request: ReadUserTransactionsRequest,
+    transactions: TransactionRepositoryDependable,
+    users: UserRepositoryDependable,
+) -> dict[str, Any] | JSONResponse:
+    try:
+        users.read(**request.model_dump())
+        return {
+            "transactions": transactions.read_user_transactions(**request.model_dump())
+        }
+    except DoesNotExistError as e:
+        return JSONResponse(
+            status_code=404,
+            content={
+                "error": {"message": f"User with id<{e.get_id()}> does not exist."}
+            },
+        )
