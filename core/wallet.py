@@ -1,5 +1,8 @@
 from dataclasses import dataclass, field
+from typing import Protocol
 from uuid import UUID, uuid4
+
+from infra.repositories.database import DatabaseHandler
 
 
 @dataclass
@@ -17,3 +20,23 @@ class Wallet:
 
     def get_balance(self) -> float:
         return self.balance
+
+
+class WalletRepository(Protocol):
+    def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
+        pass
+
+    def create(self) -> None:
+        pass
+
+    def add(self, wallet: Wallet) -> None:
+        pass
+
+    def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
+        pass
+
+    def has_same_owner(self, wallet_id1: UUID, wallet_id2: UUID) -> bool:
+        pass
+
+    def make_transaction(self, transaction: list) -> None:
+        pass

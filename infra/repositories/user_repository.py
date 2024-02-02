@@ -1,28 +1,11 @@
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any
 from uuid import UUID
 
 from core.errors import ExistsError
 from core.user import User
 from infra.repositories.database import DatabaseHandler
 from runner.constants import USERS_TABLE_COLUMNS, USERS_TABLE_NAME
-
-
-class UserRepository(Protocol):
-    def create(self) -> None:
-        pass
-
-    def add(self, user: User) -> None:
-        pass
-
-    def exists(self, user_id: UUID) -> bool:
-        pass
-
-    def __exists(self, field_name: str, value: Any) -> bool:
-        pass
-
-    def clear(self) -> None:
-        pass
 
 
 @dataclass

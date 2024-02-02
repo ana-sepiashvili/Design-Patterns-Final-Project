@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import Protocol, Any
 from uuid import UUID, uuid4
 
 
@@ -21,3 +21,20 @@ class User:
 
     def get_id(self) -> UUID:
         return self.id
+
+
+class UserRepository(Protocol):
+    def create(self) -> None:
+        pass
+
+    def add(self, user: User) -> None:
+        pass
+
+    def exists(self, user_id: UUID) -> bool:
+        pass
+
+    def __exists(self, field_name: str, value: Any) -> bool:
+        pass
+
+    def clear(self) -> None:
+        pass

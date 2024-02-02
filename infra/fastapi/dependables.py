@@ -4,15 +4,15 @@ from fastapi import Depends
 from fastapi.requests import Request
 
 from core.transaction import TransactionRepository
-from infra.repositories.user_repository import UserRepository
-from infra.repositories.wallet_repository import SqlWalletRepository
+from core.user import UserRepository
+from core.wallet import WalletRepository
 
 
 def get_user_repository(request: Request) -> UserRepository:
     return request.app.state.users  # type: ignore
 
 
-def get_wallet_repo(request: Request) -> SqlWalletRepository:
+def get_wallet_repository(request: Request) -> WalletRepository:
     return request.app.state.wallets  # type: ignore
 
 
@@ -22,7 +22,7 @@ def get_transaction_repository(request: Request) -> TransactionRepository:
 
 UserRepositoryDependable = Annotated[UserRepository, Depends(get_user_repository)]
 
-WalletDep = Annotated[SqlWalletRepository, Depends(get_wallet_repo)]
+WalletRepositoryDependable = Annotated[WalletRepository, Depends(get_wallet_repository)]
 
 TransactionRepositoryDependable = Annotated[
     TransactionRepository, Depends(get_user_repository)
