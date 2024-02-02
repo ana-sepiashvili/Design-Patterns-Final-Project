@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -7,7 +7,11 @@ from starlette.responses import JSONResponse
 
 from core.errors import DoesNotExistError, ExistsError
 from core.transaction import Transaction
-from infra.fastapi.dependables import TransactionRepositoryDependable
+from infra.fastapi.dependables import (
+    TransactionRepositoryDependable,
+    UserRepositoryDependable,
+)
+from runner.constants import TRANSACTION_FEE
 
 transaction_api = APIRouter(tags=["Transactions"])
 
@@ -18,91 +22,78 @@ class MakeTransactionRequest(BaseModel):
     amount: float
 
 
+class ReadUserTransactionsRequest(BaseModel):
+    user_id: UUID
+
+
 class UpdateProductRequest(BaseModel):
     price: int
 
 
-class UserItem(BaseModel):
+class TransactionItem(BaseModel):
     id: UUID
+    from_id: UUID
+    to_id: UUID
+    bitcoin_amount: float
+    bitcoin_fee: float
 
 
-class UserItemEnvelope(BaseModel):
-    user: UserItem
+class TransactionItemEnvelope(BaseModel):
+    transaction: TransactionItem
 
 
-class ProductListEnvelope(BaseModel):
-    products: list[UserItem]
+class TransactionListEnvelope(BaseModel):
+    products: list[TransactionItem]
 
 
-@transaction_api.post("/transactions", status_code=201, response_model=UserItemEnvelope)
+@transaction_api.post(
+    "/transactions", status_code=201, response_model=TransactionItemEnvelope
+)
 def make_transaction(
     request: MakeTransactionRequest,
     transactions: TransactionRepositoryDependable,
-    units: UnitRepositoryDependable,
+    wallets: WalletDep,
 ) -> dict[str, Any] | JSONResponse:
-    transaction = Transaction(**request.model_dump())
+    args = request.model_dump()
+    if wallets.has_same_owner(args["from_id"], args["to_id"]):
+        transaction = Transaction(**request.model_dump())
+    else:
+        transaction = Transaction(
+            args["from_id"],
+            args["to_id"],
+            args["amount"] * (1 - TRANSACTION_FEE),
+            args["amount"] * TRANSACTION_FEE,
+        )
     try:
-        units.read(transaction.get_unit_id())
-        try:
-            transactions.add(transaction)
-            return {"product": transaction}
-        except ExistsError:
-            return JSONResponse(
-                status_code=409,
-                content={
-                    "error": {
-                        "message": f"Product with "
-                        f"barcode<{transaction.get_barcode()}> already exists."
-                    }
-                },
-            )
-    except DoesNotExistError:
+        transactions.add(transaction)
+        wallets.make_transaction(transaction)
+        return {"transaction": transaction}
+    except DoesNotExistError as e:
         return JSONResponse(
             status_code=404,
             content={
-                "error": {
-                    "message": f"Unit with id<{transaction.get_unit_id()}> does not exist."
-                }
+                "error": {"message": f"Walled with id<{e.get_id()}> does not exist."}
             },
         )
 
 
-@product_api.get(
-    "/products/{product_id}", status_code=200, response_model=UserItemEnvelope
+@transaction_api.get(
+    "/transactions", status_code=200, response_model=TransactionListEnvelope
 )
-def read_product(
-    product_id: UUID, products: ProductRepositoryDependable
-) -> dict[str, Product] | JSONResponse:
-    try:
-        product = products.read(product_id)
-        return {"product": product}
-    except DoesNotExistError:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "error": {"message": f"Product with id<{product_id}> does not exist."}
-            },
-        )
-
-
-@product_api.get("/products", status_code=200, response_model=ProductListEnvelope)
-def read_all(products: ProductRepositoryDependable) -> dict[str, Any]:
-    return {"products": products.read_all()}
-
-
-@product_api.patch("/products/{product_id}", status_code=200, response_model=Dict)
-def update_product(
-    product_id: UUID,
-    request: UpdateProductRequest,
-    products: ProductRepositoryDependable,
+def read_user_transactions(
+    request: ReadUserTransactionsRequest,
+    transactions: TransactionRepositoryDependable,
+    users: UserRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     try:
-        products.update(product_id, **request.model_dump())
-        return {}
-    except DoesNotExistError:
+        users.read(**request.model_dump())
+        return {
+            "transactions": transactions.read_user_transactions(**request.model_dump())
+        }
+    except DoesNotExistError as e:
         return JSONResponse(
             status_code=404,
             content={
-                "error": {"message": f"Product with id<{product_id}> does not exist."}
+                "error": {"message": f"User with id<{e.get_id()}> does not exist."}
             },
         )
