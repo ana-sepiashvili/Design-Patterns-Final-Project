@@ -1,6 +1,6 @@
 from infra.repositories.database import DatabaseHandler
 from infra.repositories.user_repository import SqlUserRepository
-from runner.constants import DATABASE_NAME, USERS_TABLE_NAME, USERS_TABLE_COLUMNS
+from runner.constants import DATABASE_NAME, USERS_TABLE_COLUMNS, USERS_TABLE_NAME
 
 
 def create_database(db_name: str) -> None:

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Protocol
 from uuid import UUID, uuid4
 
 
@@ -30,10 +30,7 @@ class UserRepository(Protocol):
     def add(self, user: User) -> None:
         pass
 
-    def exists(self, user_id: UUID) -> bool:
-        pass
-
-    def __exists(self, field_name: str, value: Any) -> bool:
+    def read(self, user_id: UUID) -> User:
         pass
 
     def clear(self) -> None:
