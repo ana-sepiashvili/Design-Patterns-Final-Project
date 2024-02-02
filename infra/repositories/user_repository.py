@@ -5,20 +5,17 @@ from uuid import UUID
 from core.errors import ExistsError
 from core.user import User
 from infra.repositories.database import DatabaseHandler
-from runner.constants import USERS_TABLE_COLUMNS, USERS_TABLE_NAME
 
 
 @dataclass
 class SqlUserRepository:
-    database: DatabaseHandler
-
-    def __post_init__(self) -> None:
-        self.table: str = USERS_TABLE_NAME
-        self.columns: str = USERS_TABLE_COLUMNS
-        self.create()
+    def __init__(self, database: DatabaseHandler, table_name: str, columns: str):
+        self.database = database
+        self.table_name = table_name
+        self.columns = columns
 
     def create(self) -> None:
-        self.database.create_table(self.table, self.columns)
+        self.database.create_table(self.table_name, self.columns)
 
     def add(self, user: User) -> None:
         if self.__exists("email", user.get_email()):
@@ -26,7 +23,7 @@ class SqlUserRepository:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
-                f"INSERT INTO {self.table} VALUES(?, ?)",
+                f"INSERT INTO {self.table_name} VALUES(?, ?)",
                 (str(user.get_id()), user.get_email()),
             )
 
@@ -37,7 +34,7 @@ class SqlUserRepository:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             result = cursor.execute(
-                f"SELECT * FROM {self.table} WHERE {field_name} = ?", (value,)
+                f"SELECT * FROM {self.table_name} WHERE {field_name} = ?", (value,)
             ).fetchall()
             if len(result) == 0:
                 return False
@@ -46,4 +43,4 @@ class SqlUserRepository:
     def clear(self) -> None:
         with self.database.connect() as connection:
             cursor = connection.cursor()
-            cursor.execute(f"DELETE FROM {self.table}")
+            cursor.execute(f"DELETE FROM {self.table_name}")

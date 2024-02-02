@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Protocol, Any
+from typing import Any, Protocol
 from uuid import UUID, uuid4
 
 

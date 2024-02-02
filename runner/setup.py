@@ -5,7 +5,12 @@ from infra.fastapi.wallet_api import wallet_api
 from infra.repositories.database import DatabaseHandler
 from infra.repositories.user_repository import SqlUserRepository
 from infra.repositories.wallet_repository import SqlWalletRepository
-from runner.constants import WALLETS_TABLE_COLUMNS, WALLETS_TABLE_NAME
+from runner.constants import (
+    USERS_TABLE_COLUMNS,
+    USERS_TABLE_NAME,
+    WALLETS_TABLE_COLUMNS,
+    WALLETS_TABLE_NAME,
+)
 
 
 def init_app(db_name: str) -> FastAPI:
@@ -16,7 +21,7 @@ def init_app(db_name: str) -> FastAPI:
 
     db = DatabaseHandler(db_name)
 
-    app.state.users = SqlUserRepository(db)
+    app.state.users = SqlUserRepository(db, USERS_TABLE_NAME, USERS_TABLE_COLUMNS)
     app.state.wallets = SqlWalletRepository(
         db, WALLETS_TABLE_NAME, WALLETS_TABLE_COLUMNS
     )

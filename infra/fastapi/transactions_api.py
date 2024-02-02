@@ -1,15 +1,16 @@
-from typing import Any, Dict, List
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
-from core.errors import DoesNotExistError, ExistsError
+from core.errors import DoesNotExistError
 from core.transaction import Transaction
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
     UserRepositoryDependable,
+    WalletRepositoryDependable,
 )
 from runner.constants import TRANSACTION_FEE
 
@@ -52,7 +53,7 @@ class TransactionListEnvelope(BaseModel):
 def make_transaction(
     request: MakeTransactionRequest,
     transactions: TransactionRepositoryDependable,
-    wallets: WalletDep,
+    wallets: WalletRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     args = request.model_dump()
     if wallets.has_same_owner(args["from_id"], args["to_id"]):

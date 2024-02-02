@@ -7,7 +7,10 @@ from pydantic import BaseModel
 
 from core.errors import DoesNotExistError, ThreeWalletsError
 from core.wallet import Wallet
-from infra.fastapi.dependables import WalletRepositoryDependable, TransactionRepositoryDependable
+from infra.fastapi.dependables import (
+    TransactionRepositoryDependable,
+    WalletRepositoryDependable,
+)
 
 wallet_api = APIRouter(tags=["Wallets"])
 
@@ -41,15 +44,14 @@ class TransactionListResp(BaseModel):
 
 @wallet_api.post("/wallets", status_code=201, response_model=WalletResp)
 def create_wallet(
-        request: CreateWalletReqt, wallets: WalletRepositoryDependable
+    request: CreateWalletReqt, wallets: WalletRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     wallet = Wallet(**request.dict())
     print("inpost")
     try:
         wallets.add(wallet)
     except ThreeWalletsError:
-        err_msg = (f"User with id<{wallet.get_owner_id()}>"
-                   f" already has 3 wallets.")
+        err_msg = f"User with id<{wallet.get_owner_id()}>" f" already has 3 wallets."
         message = {"message": err_msg}
         content = {"error": message}
         return JSONResponse(
@@ -64,11 +66,10 @@ def create_wallet(
     return {"wallet": result}
 
 
-@wallet_api.get("/wallets/{wallet_id}",
-                status_code=200,
-                response_model=WalletResp)
-def get_wallet(wallet_id: UUID,
-               wallets: WalletRepositoryDependable) -> (dict[str, Any] | JSONResponse):
+@wallet_api.get("/wallets/{wallet_id}", status_code=200, response_model=WalletResp)
+def get_wallet(
+    wallet_id: UUID, wallets: WalletRepositoryDependable
+) -> dict[str, Any] | JSONResponse:
     try:
         wallet = wallets.read_with_wallet_id(wallet_id)
         result = {
@@ -89,10 +90,10 @@ def get_wallet(wallet_id: UUID,
 @wallet_api.get(
     "/wallets/{address}/transactions",
     status_code=200,
-    response_model=TransactionListResp
+    response_model=TransactionListResp,
 )
 def get_wallet_transactions(
-        wallet_id: UUID, transactions: TransactionRepositoryDependable
+    wallet_id: UUID, transactions: TransactionRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
         transactions = transactions.read_wallet_transactions(wallet_id)

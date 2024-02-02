@@ -2,7 +2,7 @@ import uuid
 from uuid import UUID
 
 from core.errors import DoesNotExistError
-from core.transaction import TransactionProtocol, Transaction
+from core.transaction import Transaction, TransactionProtocol
 from infra.repositories.database import DatabaseHandler
 
 

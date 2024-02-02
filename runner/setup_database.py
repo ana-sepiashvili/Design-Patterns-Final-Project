@@ -12,4 +12,3 @@ def create_database(db_name: str) -> None:
 
 if __name__ == "__main__":
     create_database(DATABASE_NAME)
-    cli()
