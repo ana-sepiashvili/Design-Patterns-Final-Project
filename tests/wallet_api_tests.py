@@ -11,10 +11,12 @@ from fastapi.testclient import TestClient
 from fake import Fake
 from runner.constants import TEST_DATABASE_NAME
 from runner.setup import init_app
+from runner.setup_database import create_database
 
 
 @pytest.fixture
 def client() -> TestClient:
+    create_database(TEST_DATABASE_NAME)
     return TestClient(init_app(TEST_DATABASE_NAME))
 
 
@@ -83,7 +85,7 @@ def test_should_get_transactions(client: TestClient) -> None:
         "to_id": str(wallet2_id),
         "bitcoin_amount": 3,
     }
-    fake_transaction = Fake().transaction(fake_trans_dict)
+    fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
     response = client.post("/transactions", json=fake_transaction)
     print("ADD TRANS")
     print(response.json())

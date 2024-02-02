@@ -19,3 +19,14 @@ class DoesNotExistError(Exception):
 
     def get_id(self) -> str:
         return self.id
+
+
+class SameWalletTransactionError(Exception):
+    pass
+
+
+class NoTransactionsError(Exception):
+    id: str
+
+    def get_id(self) -> str:
+        return self.id

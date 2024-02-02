@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from core.transaction import TransactionProtocol
+from core.transaction import Transaction
 from infra.repositories.database import DatabaseHandler
 
 
@@ -39,5 +39,8 @@ class WalletRepository(Protocol):
     def has_same_owner(self, wallet_id1: UUID, wallet_id2: UUID) -> bool:
         pass
 
-    def make_transaction(self, transaction: TransactionProtocol) -> None:
+    def make_transaction(self, transaction: Transaction) -> None:
+        pass
+
+    def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
         pass

@@ -1,7 +1,8 @@
+import uuid
 from uuid import UUID
 
 from core.errors import DoesNotExistError, NotEnoughMoneyError, ThreeWalletsError
-from core.transaction import TransactionProtocol
+from core.transaction import Transaction
 from core.wallet import Wallet
 from infra.repositories.database import DatabaseHandler
 
@@ -11,7 +12,6 @@ class SqlWalletRepository:
         self.database = db
         self.table_name = table
         self.columns = vals
-        db.create_table(self.table_name, self.columns)
 
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
@@ -52,6 +52,30 @@ class SqlWalletRepository:
             else:
                 return Wallet(UUID(values[1]), values[2], UUID(values[0]))
 
+    def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            print("WOLIT ID")
+            print(user_id)
+            cursor.execute(
+                f"SELECT * FROM {self.table_name}" f" WHERE owner_id = '{str(user_id)}'"
+            )
+            values = cursor.fetchall()
+            if len(values) == 0:
+                return []
+            else:
+                result = [
+                    Wallet(
+                        uuid.UUID(value[1]),
+                        value[2],
+                        uuid.UUID(value[0]),
+                    )
+                    for value in values
+                ]
+                print("PPPPPPPPPPPPPPPP")
+                print(result)
+                return result
+
     def has_same_owner(self, wallet_id1: UUID, wallet_id2: UUID) -> bool:
         with self.database.connect() as connection:
             cursor = connection.cursor()
@@ -74,19 +98,19 @@ class SqlWalletRepository:
             else:
                 return False
 
-    def make_transaction(self, transaction: TransactionProtocol) -> None:
+    def make_transaction(self, transaction: Transaction) -> None:
         wallet1_id = transaction.get_to_id()
         wallet2_id = transaction.get_from_id()
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
-                f"SELECT * FROM {self.table_name} " f" WHERE wallet_id = ?",
-                (str(wallet1_id)),
+                f"SELECT * FROM {self.table_name} "
+                f" WHERE wallet_id = '{str(wallet1_id)}'",
             )
             value1 = cursor.fetchone()
             cursor.execute(
-                f"SELECT * FROM {self.table_name} " f" WHERE wallet_id = ?",
-                (str(wallet2_id)),
+                f"SELECT * FROM {self.table_name} "
+                f" WHERE wallet_id = '{str(wallet2_id)}'",
             )
             value2 = cursor.fetchone()
             if value1 is None:

@@ -97,17 +97,19 @@ def get_wallet_transactions(
 ) -> dict[str, Any] | JSONResponse:
     try:
         print("trellelellelelelelele")
-        transactions = transactions.read_wallet_transactions(wallet_id)
+        transactions_list = transactions.read_wallet_transactions(wallet_id)
         print(type(transactions))
         result = []
-        for transaction in transactions:
-            result.append({
-                "transaction_id": transaction.get_id(),
-                "from_id": transaction.get_from_id(),
-                "to_id": transaction.get_to_id(),
-                "bitcoin_amount": transaction.get_bitcoin_amount(),
-                "bitcoin_fee": transaction.get_bitcoin_fee()
-            })
+        for transaction in transactions_list:
+            result.append(
+                {
+                    "transaction_id": transaction.get_id(),
+                    "from_id": transaction.get_from_id(),
+                    "to_id": transaction.get_to_id(),
+                    "bitcoin_amount": transaction.get_bitcoin_amount(),
+                    "bitcoin_fee": transaction.get_bitcoin_fee(),
+                }
+            )
         return {"transactions": result}
     except DoesNotExistError as e:
         print("trolololol")

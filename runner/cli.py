@@ -4,7 +4,7 @@ import uvicorn
 from dotenv import load_dotenv
 from typer import Typer
 
-from runner.constants import TEST_DATABASE_NAME
+from runner.constants import DATABASE_NAME
 from runner.setup import init_app
 
 cli = Typer(no_args_is_help=True, add_completion=False)
@@ -14,4 +14,4 @@ cli = Typer(no_args_is_help=True, add_completion=False)
 def run(host: str = "127.0.0.1", port: int = 9000) -> None:
     load_dotenv()
 
-    uvicorn.run(host=host, port=port, app=init_app(TEST_DATABASE_NAME))
+    uvicorn.run(host=host, port=port, app=init_app(DATABASE_NAME))
