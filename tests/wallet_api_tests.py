@@ -8,6 +8,7 @@ import pytest
 from faker import Faker
 from fastapi.testclient import TestClient
 
+from fake import Fake
 from runner.constants import TEST_DATABASE_NAME
 from runner.setup import init_app
 
@@ -15,31 +16,6 @@ from runner.setup import init_app
 @pytest.fixture
 def client() -> TestClient:
     return TestClient(init_app(TEST_DATABASE_NAME))
-
-
-@dataclass
-class Fake:
-    faker: Faker = field(default_factory=Faker)
-
-    def wallet(self, attributes: dict[str, ANY] = {}) -> dict[str, Any]:
-        wallet_dict = {}
-        if len(attributes.keys()) == 0:
-            wallet_dict = {"owner_id": str(uuid4()), "balance": 1}
-        else:
-            wallet_dict = attributes
-        return wallet_dict
-
-    def transaction(self, attributes: dict[str, ANY] = {}) -> dict[str, Any]:
-        transaction_dict = {}
-        if len(attributes.keys()) == 0:
-            transaction_dict = {
-                "from_id": str(uuid4()),
-                "to_id": str(uuid4()),
-                "bitcoin_amount": 3,
-            }
-        else:
-            transaction_dict = attributes
-        return transaction_dict
 
 
 def test_should_not_read_unknown(client: TestClient) -> None:

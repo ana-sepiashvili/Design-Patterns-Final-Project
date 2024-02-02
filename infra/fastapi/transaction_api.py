@@ -57,7 +57,6 @@ def make_transaction(
     transactions: TransactionRepositoryDependable,
     wallets: WalletRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
-    print("SEEEEEEEEEEEEEEEEEEEEEE")
     args = request.model_dump()
     print(args)
     if wallets.has_same_owner(args["from_id"], args["to_id"]):

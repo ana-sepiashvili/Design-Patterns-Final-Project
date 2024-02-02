@@ -6,17 +6,9 @@ import pytest
 from faker import Faker
 from fastapi.testclient import TestClient
 
+from fake import Fake
 from runner.constants import TEST_DATABASE_NAME
 from runner.setup import init_app
-
-
-@dataclass
-class Fake:
-    faker: Faker = field(default_factory=Faker)
-
-    def user(self) -> dict[str, str]:
-        return {"email": self.faker.catch_phrase()}
-
 
 @pytest.fixture
 def client() -> Generator[TestClient, None, None]:
