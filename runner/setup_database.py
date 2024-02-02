@@ -1,13 +1,13 @@
 from infra.repositories.database import DatabaseHandler
-from runner.cli import cli
-from runner.constants import DATABASE_NAME
+from infra.repositories.user_repository import SqlUserRepository
+from runner.constants import DATABASE_NAME, USERS_TABLE_NAME, USERS_TABLE_COLUMNS
 
 
 def create_database(db_name: str) -> None:
     db = DatabaseHandler(db_name)
 
-    # unit_repository = SqlUnitRepository(db, UNITS_TABLE_NAME, UNITS_TABLE_COLUMNS)
-    # unit_repository.create()
+    user_repository = SqlUserRepository(db, USERS_TABLE_NAME, USERS_TABLE_COLUMNS)
+    user_repository.create()
 
 
 if __name__ == "__main__":
