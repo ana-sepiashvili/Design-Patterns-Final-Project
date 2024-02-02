@@ -46,7 +46,7 @@ class TransactionItemEnvelope(BaseModel):
 
 
 class TransactionListEnvelope(BaseModel):
-    products: list[TransactionItem]
+    transactions: list[TransactionItem]
 
 
 @transaction_api.post(

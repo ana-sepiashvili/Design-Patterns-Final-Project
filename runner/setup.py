@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from infra.fastapi.transactions_api import transaction_api
+from infra.fastapi.transaction_api import transaction_api
 from infra.fastapi.user_api import user_api
 from infra.fastapi.wallet_api import wallet_api
 from infra.repositories.database import DatabaseHandler

@@ -2,11 +2,11 @@ from uuid import UUID
 
 from core.errors import DoesNotExistError, NotEnoughMoneyError, ThreeWalletsError
 from core.transaction import TransactionProtocol
-from core.wallet import Wallet, WalletRepository
+from core.wallet import Wallet
 from infra.repositories.database import DatabaseHandler
 
 
-class SqlWalletRepository(WalletRepository):
+class SqlWalletRepository:
     def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
         self.database = db
         self.table_name = table
