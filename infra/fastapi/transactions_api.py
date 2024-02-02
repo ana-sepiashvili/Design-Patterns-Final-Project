@@ -20,8 +20,8 @@ transaction_api = APIRouter(tags=["Transactions"])
 # test branch
 
 class MakeTransactionRequest(BaseModel):
-    from_id: UUID
-    to_id: UUID
+    from_id: str
+    to_id: str
     amount: float
 
 
@@ -57,7 +57,9 @@ def make_transaction(
     transactions: TransactionRepositoryDependable,
     wallets: WalletRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
+    print("SEEEEEEEEEEEEEEEEEEEEEE")
     args = request.model_dump()
+    print(args)
     if wallets.has_same_owner(args["from_id"], args["to_id"]):
         transaction = Transaction(**request.model_dump())
     else:

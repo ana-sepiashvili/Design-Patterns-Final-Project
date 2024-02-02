@@ -9,6 +9,10 @@ class ExistsError(Exception):
     pass
 
 
+class NotEnoughMoneyError(Exception):
+    pass
+
+
 @dataclass
 class DoesNotExistError(Exception):
     id: str

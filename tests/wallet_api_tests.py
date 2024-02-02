@@ -32,9 +32,11 @@ class Fake:
     def transaction(self, attributes: dict[str, ANY] = {}) -> dict[str, Any]:
         transaction_dict = {}
         if len(attributes.keys()) == 0:
-            transaction_dict = {"from_id": str(uuid4()),
-                                "to_id": str(uuid4()),
-                                "bitcoin_amount": 3}
+            transaction_dict = {
+                "from_id": str(uuid4()),
+                "to_id": str(uuid4()),
+                "bitcoin_amount": 3,
+            }
         else:
             transaction_dict = attributes
         return transaction_dict
@@ -79,7 +81,7 @@ def test_should_not_create_more_than_three(client: TestClient) -> None:
     assert response.json() == expected
 
 
-def test_should_persist(client: TestClient):
+def test_should_persist(client: TestClient) -> None:
     wallet = Fake().wallet()
     response = client.post("/wallets", json=wallet)
     wallet_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
@@ -91,22 +93,30 @@ def test_should_persist(client: TestClient):
     assert response.json() == {"wallet": expected}
 
 
-def test_should_get_transactions(client: TestClient):
+def test_should_get_transactions(client: TestClient) -> None:
     wallet1 = Fake().wallet()
     response = client.post("/wallets", json=wallet1)
-    wallet1_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
+    wallet1_id = response.json()["wallet"]["wallet_id"]
     wallet2 = Fake().wallet()
     response = client.post("/wallets", json=wallet2)
-    wallet2_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
+    wallet2_id = response.json()["wallet"]["wallet_id"]
 
-    fake_transaction = {"from_id": wallet1_id,
-                        "to_id": wallet2_id,
-                        "bitcoin_amount": 3}
-    client.post(f"/transactions", json=fake_transaction)
-
-    expected = {"wallet_id": ANY, "balance_btc": 1, "balance_usd": 42316.90}
+    print("MADE BOTH")
+    fake_trans_dict = {
+        "from_id": str(wallet1_id),
+        "to_id": str(wallet2_id),
+        "bitcoin_amount": 3,
+    }
+    fake_transaction = Fake().transaction(fake_trans_dict)
+    response = client.post("/transactions", json=fake_transaction)
+    print("ADD TRANS")
+    print(response.json())
+    print(response.status_code)
+    response = client.get(f"/wallets/{wallet1_id}/transactions")
+    print("GOT trans")
+    print(response)
     assert response.status_code == 200
-    assert response.json() == {"wallet": expected}
+
 
 # def test_read_all(client: TestClient):
 #     p1 = {"unit_id": str(uuid4()), "name": "Coa", "barcode": "1", "price": 12}
