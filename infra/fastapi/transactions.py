@@ -13,7 +13,6 @@ transaction_api = APIRouter(tags=["Transactions"])
 
 
 class MakeTransactionRequest(BaseModel):
-    transaction_id: UUID
     from_id: UUID
     to_id: UUID
     amount: float
