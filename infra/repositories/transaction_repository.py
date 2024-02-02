@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 from uuid import UUID
 
 from core.errors import DoesNotExistError
@@ -54,7 +53,7 @@ class SqlTransactionRepository:
                 ]
                 return result
 
-    def read_wallet_transactions(self, wallet_id: UUID) -> list[Transaction]:
+    def read_wallet_transactions(self, wallet_id: UUID) -> TransactionProtocol:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
