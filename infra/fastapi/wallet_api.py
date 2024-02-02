@@ -88,7 +88,7 @@ def get_wallet(
 
 
 @wallet_api.get(
-    "/wallets/{address}/transactions",
+    "/wallets/{wallet_id}/transactions",
     status_code=200,
     response_model=TransactionListResp,
 )
@@ -96,9 +96,10 @@ def get_wallet_transactions(
     wallet_id: UUID, transactions: TransactionRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
+        print("AAAAAAAAAAAAA")
         transactions = transactions.read_wallet_transactions(wallet_id)
+        print(transactions)
         return {"transactions": transactions}
-        pass
     except DoesNotExistError:
         message = {"message": f"Wallet with id<{wallet_id}> does not exist."}
         content = {"error": message}

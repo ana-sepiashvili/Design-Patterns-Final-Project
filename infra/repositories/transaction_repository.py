@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 from uuid import UUID
 
 from core.errors import DoesNotExistError
@@ -11,6 +12,7 @@ class SqlTransactionRepository:
         self.database = database
         self.table_name = table_name
         self.columns = columns
+        self.create()
 
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
@@ -31,6 +33,25 @@ class SqlTransactionRepository:
             )
             connection.commit()
 
+    def __result_to_list(self, values: list[list[Any]], user_id: UUID) \
+            -> list[Transaction]:
+        if len(values) == 0:
+            raise DoesNotExistError(str(user_id))
+        else:
+            result = [
+                Transaction(
+                    uuid.UUID(value[1]),
+                    uuid.UUID(value[2]),
+                    value[3],
+                    value[4],
+                    uuid.UUID(value[0]),
+                )
+                for value in values
+            ]
+            print("PPPPPPPPPPPPPPPP")
+            print(result)
+            return result
+
     def read_user_transactions(self, user_id: UUID) -> list[Transaction]:
         with self.database.connect() as connection:
             cursor = connection.cursor()
@@ -38,22 +59,9 @@ class SqlTransactionRepository:
                 f"SELECT * FROM {self.table_name} WHERE user_id = ?", (str(user_id),)
             )
             values = cursor.fetchall()
-            if len(values) == 0:
-                raise DoesNotExistError(str(user_id))
-            else:
-                result = [
-                    Transaction(
-                        uuid.UUID(value[1]),
-                        uuid.UUID(value[2]),
-                        value[3],
-                        value[4],
-                        uuid.UUID(value[0]),
-                    )
-                    for value in values
-                ]
-                return result
+            return self.__result_to_list(values, user_id)
 
-    def read_wallet_transactions(self, wallet_id: UUID) -> TransactionProtocol:
+    def read_wallet_transactions(self, wallet_id: UUID) -> list[TransactionProtocol]:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -64,17 +72,4 @@ class SqlTransactionRepository:
                 ),
             )
             values = cursor.fetchall()
-            if len(values) == 0:
-                raise DoesNotExistError(str(wallet_id))
-            else:
-                result = [
-                    Transaction(
-                        uuid.UUID(value[1]),
-                        uuid.UUID(value[2]),
-                        value[3],
-                        value[4],
-                        uuid.UUID(value[0]),
-                    )
-                    for value in values
-                ]
-                return result
+            return self.__result_to_list(values, None)

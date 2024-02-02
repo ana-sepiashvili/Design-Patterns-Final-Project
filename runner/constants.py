@@ -1,5 +1,5 @@
 DATABASE_NAME = "wallet.db"
-TEST_DATABASE_NAME = "testing.db"
+TEST_DATABASE_NAME = "../databases/testing.db"
 
 USERS_TABLE_NAME = "users"
 USERS_TABLE_COLUMNS = "id UUID UNIQUE, " "email TEXT NOT NULL UNIQUE"
