@@ -25,5 +25,5 @@ UserRepositoryDependable = Annotated[UserRepository, Depends(get_user_repository
 WalletRepositoryDependable = Annotated[WalletRepository, Depends(get_wallet_repository)]
 
 TransactionRepositoryDependable = Annotated[
-    TransactionRepository, Depends(get_user_repository)
+    TransactionRepository, Depends(get_transaction_repository)
 ]

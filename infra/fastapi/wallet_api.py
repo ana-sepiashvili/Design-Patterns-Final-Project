@@ -46,7 +46,7 @@ class TransactionListResp(BaseModel):
 def create_wallet(
     request: CreateWalletReqt, wallets: WalletRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
-    wallet = Wallet(**request.dict())
+    wallet = Wallet(**request.model_dump())
     print("inpost")
     try:
         wallets.add(wallet)
@@ -88,7 +88,7 @@ def get_wallet(
 
 
 @wallet_api.get(
-    "/wallets/{address}/transactions",
+    "/wallets/{wallet_id}/transactions",
     status_code=200,
     response_model=TransactionListResp,
 )
@@ -96,11 +96,24 @@ def get_wallet_transactions(
     wallet_id: UUID, transactions: TransactionRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
-        transactions = transactions.read_wallet_transactions(wallet_id)
-        return {"transactions": transactions}
-        pass
-    except DoesNotExistError:
-        message = {"message": f"Wallet with id<{wallet_id}> does not exist."}
+        print("trellelellelelelelele")
+        transactions_list = transactions.read_wallet_transactions(wallet_id)
+        print(type(transactions))
+        result = []
+        for transaction in transactions_list:
+            result.append(
+                {
+                    "transaction_id": transaction.get_id(),
+                    "from_id": transaction.get_from_id(),
+                    "to_id": transaction.get_to_id(),
+                    "bitcoin_amount": transaction.get_bitcoin_amount(),
+                    "bitcoin_fee": transaction.get_bitcoin_fee(),
+                }
+            )
+        return {"transactions": result}
+    except DoesNotExistError as e:
+        print("trolololol")
+        message = {"message": f"Wallet with id<{e.get_id()}> does not exist."}
         content = {"error": message}
         return JSONResponse(
             status_code=404,
