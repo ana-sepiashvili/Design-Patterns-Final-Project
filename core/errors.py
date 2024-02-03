@@ -33,7 +33,8 @@ class SameWalletTransactionError(Exception):
 
 
 class ConverterError(Exception):
-    pass
+    def get_err_msg(self) -> str:
+        return "converter has met an error"
 
 
 class NoAccessError(Exception):
