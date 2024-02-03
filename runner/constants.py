@@ -13,9 +13,10 @@ TRANSACTIONS_TABLE_COLUMNS = (
     "id TEXT, from_id TEXT, to_id TEXT, bitcoin_amount DOUBLE, bitcoin_fee DOUBLE"
 )
 
+ADMIN_API_KEY = "6e0773d0-8975-4720-b8fe-19985a350084"
+
 TRANSACTION_FEE = 0.015
-BTC_TO_SAT = 100000000
-CONVERSION_API_LINK = "https://api.coingecko.com/api/v3/simple/price"
+CONVERSION_API_LINK = "https://blockchain.info/ticker"
 
 TEST_USER1_ID = "51bb4fc6-9a08-4791-a599-a794543dbde7"
 TEST_USER2_ID = "854a7b15-3b4e-4a3c-b100-65bd59ddddba"
@@ -26,3 +27,5 @@ TEST_USER2_EMAIL = "email2@gmail.com"
 TEST_USER1_WALLET1 = "8858315c-61cf-4a17-9197-e8880fb57f84"
 TEST_USER1_WALLET2 = "23ab2bf9-719d-47dd-95ba-0915175d0f9b"
 TEST_USER2_WALLET = "8241a758-407e-4ec1-823f-020f7cf47998"
+
+DEFAULT_BALANCE = 1.0

@@ -41,8 +41,6 @@ class SqlWalletRepository:
     def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
         with self.database.connect() as connection:
             cursor = connection.cursor()
-            print("WOLIT ID")
-            print(wallet_id)
             cursor.execute(
                 f"SELECT * FROM {self.table_name}" f" WHERE wallet_id = '{wallet_id}'"
             )
@@ -55,8 +53,6 @@ class SqlWalletRepository:
     def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
         with self.database.connect() as connection:
             cursor = connection.cursor()
-            print("WOLIT ID")
-            print(user_id)
             cursor.execute(
                 f"SELECT * FROM {self.table_name}" f" WHERE owner_id = '{str(user_id)}'"
             )
@@ -72,8 +68,6 @@ class SqlWalletRepository:
                     )
                     for value in values
                 ]
-                print("PPPPPPPPPPPPPPPP")
-                print(result)
                 return result
 
     def has_same_owner(self, wallet_id1: UUID, wallet_id2: UUID) -> bool:

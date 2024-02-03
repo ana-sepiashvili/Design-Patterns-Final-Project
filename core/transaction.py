@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
+from core.statistics import Statistics
+
 
 @dataclass
 class Transaction:
@@ -37,4 +39,7 @@ class TransactionRepository(Protocol):
         pass
 
     def read_wallet_transactions(self, wallet_id: uuid.UUID) -> list[Transaction]:
+        pass
+
+    def read_statistics(self, admin_key: UUID) -> Statistics:
         pass

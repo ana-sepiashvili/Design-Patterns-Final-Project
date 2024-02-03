@@ -4,12 +4,13 @@ from uuid import UUID, uuid4
 
 from core.transaction import Transaction
 from infra.repositories.database import DatabaseHandler
+from runner.constants import DEFAULT_BALANCE
 
 
 @dataclass
 class Wallet:
     owner_id: UUID
-    balance: float
+    balance: float = DEFAULT_BALANCE
 
     id: UUID = field(default_factory=uuid4)
 
