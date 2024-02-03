@@ -1,9 +1,7 @@
 import uuid
 from uuid import UUID
 
-from core.errors import (
-    SameWalletTransactionError,
-)
+from core.errors import SameWalletTransactionError
 from core.transaction import Transaction
 from infra.repositories.database import DatabaseHandler
 
@@ -61,6 +59,4 @@ class SqlTransactionRepository:
                     )
                     for value in values
                 ]
-                print("PPPPPPPPPPPPPPPP")
-                print(result)
                 return result
