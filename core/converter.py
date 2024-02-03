@@ -26,10 +26,10 @@ class Converter:
         response = requests.get(url, params=params)
 
         if response.status_code == 200:
-            btc_to_usd_rate = response.json()["bitcoin"]["usd"]
+            btc_to_usd_rate: float = response.json()["bitcoin"]["usd"]
             return self.btc * btc_to_usd_rate
         else:
             raise ConverterError
 
     def btc_to_sat(self) -> int:
-        return self.btc * BTC_TO_SAT
+        return round(self.btc * BTC_TO_SAT)

@@ -1,5 +1,6 @@
-from dataclasses import field, dataclass
+from dataclasses import dataclass, field
 from typing import Any
+
 from faker import Faker
 
 

@@ -1,17 +1,17 @@
 from unittest.mock import ANY
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 import pytest
 from starlette.testclient import TestClient
 
 from runner.constants import (
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
+    TEST_USER1_ID,
     TEST_USER1_WALLET1,
     TEST_USER1_WALLET2,
-    TRANSACTION_FEE,
-    TEST_USER2_WALLET,
-    TEST_USER1_ID,
     TEST_USER2_ID,
+    TEST_USER2_WALLET,
+    TRANSACTION_FEE,
 )
 from runner.setup import init_app
 from runner.setup_database import create_database
@@ -82,7 +82,8 @@ def test_should_not_create_with_same_wallet(client: TestClient) -> None:
     assert response.status_code == 400
     assert response.json() == {
         "error": {
-            "message": f"You cannot transfer from wallet with id<{TEST_USER1_WALLET1}> to itself."
+            "message": f"You cannot transfer from wallet with"
+            f" id<{TEST_USER1_WALLET1}> to itself."
         }
     }
 
