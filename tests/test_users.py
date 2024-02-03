@@ -1,28 +1,18 @@
-from dataclasses import dataclass, field
-from typing import Generator
 from unittest.mock import ANY
 
 import pytest
-from faker import Faker
 from fastapi.testclient import TestClient
 
+from fake import Fake
 from runner.constants import TEST_DATABASE_NAME
 from runner.setup import init_app
-
-
-@dataclass
-class Fake:
-    faker: Faker = field(default_factory=Faker)
-
-    def user(self) -> dict[str, str]:
-        return {"email": self.faker.catch_phrase()}
+from runner.setup_database import create_database
 
 
 @pytest.fixture
-def client() -> Generator[TestClient, None, None]:
-    app = init_app(TEST_DATABASE_NAME)
-    with TestClient(app) as client:
-        yield client
+def client() -> TestClient:
+    create_database(TEST_DATABASE_NAME)
+    return TestClient(init_app(TEST_DATABASE_NAME))
 
 
 def test_should_create(client: TestClient) -> None:
