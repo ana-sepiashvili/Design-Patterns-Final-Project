@@ -45,3 +45,6 @@ class WalletRepository(Protocol):
 
     def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
         pass
+
+    def wallet_belongs_to_owner(self, owner_id: UUID, wallet_id: UUID) -> None:
+        pass

@@ -89,7 +89,9 @@ def make_transaction(
         return JSONResponse(
             status_code=404,
             content={
-                "error": {"message": f"Wallet with id<{e.get_id()}> does not exist."}
+                "error": {
+                    "message": f"{e.get_type()} with id<{e.get_id()}> does not exist."
+                }
             },
         )
 
@@ -114,6 +116,8 @@ def read_user_transactions(
         return JSONResponse(
             status_code=404,
             content={
-                "error": {"message": f"User with id<{e.get_id()}> does not exist."}
+                "error": {
+                    "message": f"{e.get_type()} with id<{e.get_id()}> does not exist."
+                }
             },
         )

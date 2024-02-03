@@ -1,12 +1,12 @@
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from core.converter import btc_to_usd
-from core.errors import DoesNotExistError, ThreeWalletsError
+from core.errors import DoesNotExistError, ThreeWalletsError, WrongOwnerError
 from core.wallet import Wallet
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
@@ -15,10 +15,6 @@ from infra.fastapi.dependables import (
 )
 
 wallet_api = APIRouter(tags=["Wallets"])
-
-
-class CreateWalletReqt(BaseModel):
-    owner_id: UUID
 
 
 class WalletSingle(BaseModel):
@@ -45,24 +41,24 @@ class TransactionListResp(BaseModel):
 
 @wallet_api.post("/wallets", status_code=201, response_model=WalletResp)
 def create_wallet(
-    request: CreateWalletReqt,
     wallets: WalletRepositoryDependable,
     users: UserRepositoryDependable,
+    api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
-    wallet = Wallet(**request.model_dump())
     try:
-        users.read(wallet.get_owner_id())
+        users.read(api_key)
+        wallet = Wallet(owner_id=api_key)
         wallets.add(wallet)
     except ThreeWalletsError:
-        err_msg = f"User with id<{wallet.get_owner_id()}> already has 3 wallets."
+        err_msg = f"User with id<{api_key}> already has 3 wallets."
         message = {"message": err_msg}
         content = {"error": message}
         return JSONResponse(
             status_code=409,
             content=content,
         )
-    except DoesNotExistError:
-        err_msg = f"User with id<{wallet.get_owner_id()}> does not exist."
+    except DoesNotExistError as e:
+        err_msg = f"{e.get_type()} with id<{e.get_id()}> does not exist."
         message = {"message": err_msg}
         content = {"error": message}
         return JSONResponse(
@@ -79,21 +75,33 @@ def create_wallet(
 
 @wallet_api.get("/wallets/{wallet_id}", status_code=200, response_model=WalletResp)
 def get_wallet(
-    wallet_id: UUID, wallets: WalletRepositoryDependable
+    wallet_id: UUID,
+    wallets: WalletRepositoryDependable,
+    users: UserRepositoryDependable,
+    api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     try:
+        users.read(api_key)
         wallet = wallets.read_with_wallet_id(wallet_id)
+        wallets.wallet_belongs_to_owner(api_key, wallet_id)
         result = {
             "wallet_id": str(wallet.get_id()),
             "balance_btc": wallet.get_balance(),
             "balance_usd": btc_to_usd(wallet.get_balance()),
         }
         return {"wallet": result}
-    except DoesNotExistError:
-        message = {"message": f"Wallet with id<{wallet_id}> does not exist."}
+    except DoesNotExistError as e:
+        message = {"message": f"{e.get_type()} with id<{e.get_id()}> does not exist."}
         content = {"error": message}
         return JSONResponse(
             status_code=404,
+            content=content,
+        )
+    except WrongOwnerError as e:
+        message = {"message": e.get_err_msg()}
+        content = {"error": message}
+        return JSONResponse(
+            status_code=400,
             content=content,
         )
 
@@ -106,9 +114,13 @@ def get_wallet(
 def get_wallet_transactions(
     wallet_id: UUID,
     wallets: WalletRepositoryDependable,
+    users: UserRepositoryDependable,
     transactions: TransactionRepositoryDependable,
+    api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     try:
+        users.read(api_key)
+        wallets.wallet_belongs_to_owner(api_key, wallet_id)
         wallets.read_with_wallet_id(wallet_id)
         transactions_list = transactions.read_wallet_transactions(wallet_id)
         result = []
@@ -124,9 +136,16 @@ def get_wallet_transactions(
             )
         return {"transactions": result}
     except DoesNotExistError as e:
-        message = {"message": f"Wallet with id<{e.get_id()}> does not exist."}
+        message = {"message": f"{e.get_type()} with id<{e.get_id()}> does not exist."}
         content = {"error": message}
         return JSONResponse(
             status_code=404,
+            content=content,
+        )
+    except WrongOwnerError as e:
+        message = {"message": e.get_err_msg()}
+        content = {"error": message}
+        return JSONResponse(
+            status_code=400,
             content=content,
         )

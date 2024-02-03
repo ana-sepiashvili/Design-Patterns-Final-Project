@@ -1,7 +1,12 @@
 import uuid
 from uuid import UUID
 
-from core.errors import DoesNotExistError, NotEnoughMoneyError, ThreeWalletsError
+from core.errors import (
+    DoesNotExistError,
+    NotEnoughMoneyError,
+    ThreeWalletsError,
+    WrongOwnerError,
+)
 from core.transaction import Transaction
 from core.wallet import Wallet
 from infra.repositories.database import DatabaseHandler
@@ -46,7 +51,7 @@ class SqlWalletRepository:
             )
             values = cursor.fetchone()
             if values is None:
-                raise DoesNotExistError(str(wallet_id))
+                raise DoesNotExistError(str(wallet_id), "Wallet")
             else:
                 return Wallet(UUID(values[1]), values[2], UUID(values[0]))
 
@@ -84,9 +89,9 @@ class SqlWalletRepository:
             )
             value2 = cursor.fetchone()
             if value1 is None:
-                raise DoesNotExistError(str(wallet_id1))
+                raise DoesNotExistError(str(wallet_id1), "Wallet")
             elif value2 is None:
-                raise DoesNotExistError(str(wallet_id2))
+                raise DoesNotExistError(str(wallet_id2), "Wallet")
             elif value1[0] == value2[0]:
                 return True
             else:
@@ -108,9 +113,9 @@ class SqlWalletRepository:
             )
             value2 = cursor.fetchone()
             if value1 is None:
-                raise DoesNotExistError(str(wallet1_id))
+                raise DoesNotExistError(str(wallet1_id), "Wallet")
             if value2 is None:
-                raise DoesNotExistError(str(wallet2_id))
+                raise DoesNotExistError(str(wallet2_id), "Wallet")
             if value1[2] < transaction.get_bitcoin_amount():
                 raise NotEnoughMoneyError
             cursor.execute(
@@ -124,3 +129,16 @@ class SqlWalletRepository:
                 f" WHERE wallet_id = '{value2[0][0]}'"
             )
             connection.commit()
+
+    def wallet_belongs_to_owner(self, owner_id: UUID, wallet_id: UUID) -> None:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                f"SELECT owner_id FROM {self.table_name}"
+                + f" WHERE wallet_id = '{wallet_id}'"
+            )
+            values = cursor.fetchone()
+            if values is None:
+                raise DoesNotExistError(str(wallet_id), "Wallet")
+            if str(values[0]) != str(owner_id):
+                raise WrongOwnerError(str(owner_id), str(wallet_id))
