@@ -46,7 +46,7 @@ class TransactionListResp(BaseModel):
 def create_wallet(
     request: CreateWalletReqt, wallets: WalletRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
-    wallet = Wallet(**request.dict())
+    wallet = Wallet(**request.model_dump())
     print("inpost")
     try:
         wallets.add(wallet)
