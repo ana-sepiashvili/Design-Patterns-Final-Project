@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
+from core.statistics import Statistics
+
 
 @dataclass
 class Transaction:

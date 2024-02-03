@@ -1,10 +1,7 @@
 import uuid
 from uuid import UUID
 
-from core.errors import (
-    SameWalletTransactionError,
-    NoAccessError,
-)
+from core.errors import NoAccessError, SameWalletTransactionError
 from core.statistics import Statistics
 from core.transaction import Transaction
 from infra.repositories.database import DatabaseHandler
@@ -67,7 +64,7 @@ class SqlTransactionRepository:
                 return result
 
     def read_statistics(self, admin_key: UUID) -> Statistics:
-        if admin_key == ADMIN_API_KEY:
+        if str(admin_key) != ADMIN_API_KEY:
             raise NoAccessError(str(admin_key))
 
         with self.database.connect() as connection:
