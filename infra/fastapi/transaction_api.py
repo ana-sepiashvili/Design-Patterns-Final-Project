@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
-from core.errors import DoesNotExistError
+from core.errors import DoesNotExistError, SameWalletTransactionError
 from core.transaction import Transaction
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
@@ -17,10 +17,13 @@ from runner.constants import TRANSACTION_FEE
 transaction_api = APIRouter(tags=["Transactions"])
 
 
+# test branch
+
+
 class MakeTransactionRequest(BaseModel):
-    from_id: UUID
-    to_id: UUID
-    amount: float
+    from_id: str
+    to_id: str
+    bitcoin_amount: float
 
 
 class ReadUserTransactionsRequest(BaseModel):
@@ -44,7 +47,7 @@ class TransactionItemEnvelope(BaseModel):
 
 
 class TransactionListEnvelope(BaseModel):
-    products: list[TransactionItem]
+    transactions: list[TransactionItem]
 
 
 @transaction_api.post(
@@ -56,41 +59,56 @@ def make_transaction(
     wallets: WalletRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     args = request.model_dump()
-    if wallets.has_same_owner(args["from_id"], args["to_id"]):
-        transaction = Transaction(**request.model_dump())
-    else:
-        transaction = Transaction(
-            args["from_id"],
-            args["to_id"],
-            args["amount"] * (1 - TRANSACTION_FEE),
-            args["amount"] * TRANSACTION_FEE,
-        )
     try:
-        transactions.add(transaction)
+        if wallets.has_same_owner(args["from_id"], args["to_id"]):
+            transaction = Transaction(**request.model_dump())
+        else:
+            transaction = Transaction(
+                args["from_id"],
+                args["to_id"],
+                args["bitcoin_amount"] * (1 - TRANSACTION_FEE),
+                args["bitcoin_amount"] * TRANSACTION_FEE,
+            )
         wallets.make_transaction(transaction)
-        return {"transaction": transaction}
+        try:
+            transactions.add(transaction)
+            return {"transaction": transaction}
+        except SameWalletTransactionError:
+            wallet_id = args["from_id"]
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "error": {
+                        "message": f"You cannot transfer from wallet with id<{wallet_id}> to itself."
+                    }
+                },
+            )
+
     except DoesNotExistError as e:
         return JSONResponse(
             status_code=404,
             content={
-                "error": {"message": f"Walled with id<{e.get_id()}> does not exist."}
+                "error": {"message": f"Wallet with id<{e.get_id()}> does not exist."}
             },
         )
 
 
 @transaction_api.get(
-    "/transactions", status_code=200, response_model=TransactionListEnvelope
+    "/transactions/{user_id}", status_code=200, response_model=TransactionListEnvelope
 )
 def read_user_transactions(
-    request: ReadUserTransactionsRequest,
+    user_id: UUID,
+    wallets: WalletRepositoryDependable,
     transactions: TransactionRepositoryDependable,
     users: UserRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     try:
-        users.read(**request.model_dump())
-        return {
-            "transactions": transactions.read_user_transactions(**request.model_dump())
-        }
+        users.read(user_id)
+        wallets_list = wallets.read_with_user_id(user_id)
+        result = []
+        for wallet in wallets_list:
+            result.extend(transactions.read_wallet_transactions(wallet.get_id()))
+        return {"transactions": result}
     except DoesNotExistError as e:
         return JSONResponse(
             status_code=404,

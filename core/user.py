@@ -35,3 +35,6 @@ class UserRepository(Protocol):
 
     def clear(self) -> None:
         pass
+
+    def read(self, user_id: UUID) -> User:
+        pass
