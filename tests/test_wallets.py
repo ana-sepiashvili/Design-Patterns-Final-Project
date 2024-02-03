@@ -6,10 +6,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.errors import ConverterError
-from fake import Fake
 from runner.constants import DEFAULT_BALANCE, TEST_DATABASE_NAME
 from runner.setup import init_app
 from runner.setup_database import create_database
+from fake import Fake
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def client() -> TestClient:
     return TestClient(init_app(TEST_DATABASE_NAME))
 
 
-def test_shouldnt_create_for_unknown(client: TestClient) -> None:
+def test_should_not_create_for_unknown(client: TestClient) -> None:
     try:
         wallet = Fake().wallet({})
         response = client.post("/wallets", headers={"api_key": wallet["owner_id"]})
@@ -26,7 +26,7 @@ def test_shouldnt_create_for_unknown(client: TestClient) -> None:
         assert response.status_code == 400
         assert response.json() == {"error": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
 def test_should_create(client: TestClient) -> None:
@@ -44,7 +44,7 @@ def test_should_create(client: TestClient) -> None:
         assert response.status_code == 201
         assert response.json() == {"wallet": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
 def test_should_not_create_more_than_three(client: TestClient) -> None:
@@ -63,7 +63,7 @@ def test_should_not_create_more_than_three(client: TestClient) -> None:
         assert response.status_code == 409
         assert response.json() == expected
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
 def test_should_not_read_unknown(client: TestClient) -> None:
@@ -80,7 +80,7 @@ def test_should_not_read_unknown(client: TestClient) -> None:
         assert response.status_code == 404
         assert response.json() == expected
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
 def test_should_read_own(client: TestClient) -> None:
@@ -101,10 +101,10 @@ def test_should_read_own(client: TestClient) -> None:
         assert response.status_code == 200
         assert response.json() == {"wallet": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
-def test_shouldnt_read_others_wallet(client: TestClient) -> None:
+def test_should_not_read_others_wallet(client: TestClient) -> None:
     try:
         user1 = Fake().user()
         user2 = Fake().user()
@@ -125,7 +125,7 @@ def test_shouldnt_read_others_wallet(client: TestClient) -> None:
         assert response.status_code == 400
         assert response.json() == {"error": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
 def test_should_get_transactions(client: TestClient) -> None:
@@ -147,7 +147,7 @@ def test_should_get_transactions(client: TestClient) -> None:
             "bitcoin_amount": 0.2,
         }
         fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
-        client.post("/transactions", json=fake_transaction)
+        client.post(f"/transactions/{uuid.UUID(owner1_id)}", json=fake_transaction)
         response = client.get(
             f"/wallets/{uuid.UUID(wallet1_id)}/transactions",
             headers={"api_key": owner1_id},
@@ -164,10 +164,10 @@ def test_should_get_transactions(client: TestClient) -> None:
         assert response.status_code == 200
         assert response.json() == {"transactions": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
-def test_shouldnt_get_transactions_with_fake_key(client: TestClient) -> None:
+def test_should_not_get_transactions_with_fake_key(client: TestClient) -> None:
     try:
         random_id1 = str(uuid4())
         random_id2 = str(uuid4())
@@ -179,10 +179,10 @@ def test_shouldnt_get_transactions_with_fake_key(client: TestClient) -> None:
         assert response.status_code == 404
         assert response.json() == {"error": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
-def test_shouldnt_get_transactions_of_fake_wallet(client: TestClient) -> None:
+def test_should_not_get_transactions_of_fake_wallet(client: TestClient) -> None:
     try:
         user = Fake().user()
         response = client.post("/users", json=user)
@@ -197,10 +197,10 @@ def test_shouldnt_get_transactions_of_fake_wallet(client: TestClient) -> None:
         assert response.status_code == 404
         assert response.json() == {"error": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())
 
 
-def test_shouldnt_get_transactions_of_others_wallet(client: TestClient) -> None:
+def test_should_not_get_transactions_of_others_wallet(client: TestClient) -> None:
     try:
         user1 = Fake().user()
         user2 = Fake().user()
@@ -223,4 +223,4 @@ def test_shouldnt_get_transactions_of_others_wallet(client: TestClient) -> None:
         assert response.status_code == 400
         assert response.json() == {"error": expected}
     except ConverterError as e:
-        print(e.get_err_msg())
+        print(e.get_error_message())

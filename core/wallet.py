@@ -3,7 +3,6 @@ from typing import Protocol
 from uuid import UUID, uuid4
 
 from core.transaction import Transaction
-from infra.repositories.database import DatabaseHandler
 from runner.constants import DEFAULT_BALANCE
 
 
@@ -25,9 +24,6 @@ class Wallet:
 
 
 class WalletRepository(Protocol):
-    def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
-        pass
-
     def create(self) -> None:
         pass
 

@@ -5,9 +5,9 @@ from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from core.converter import btc_to_usd
 from core.errors import DoesNotExistError, ThreeWalletsError, WrongOwnerError
 from core.wallet import Wallet
+from infra.converter import btc_to_usd
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
     UserRepositoryDependable,
@@ -98,7 +98,10 @@ def get_wallet(
             content=content,
         )
     except WrongOwnerError as e:
-        message = {"message": e.get_err_msg()}
+        message = {
+            "message": f"User with id<{e.get_owner_id()}> doesn't "
+            f"own wallet with id<{e.get_wallet_id()}>"
+        }
         content = {"error": message}
         return JSONResponse(
             status_code=400,
@@ -142,8 +145,12 @@ def get_wallet_transactions(
             status_code=404,
             content=content,
         )
+
     except WrongOwnerError as e:
-        message = {"message": e.get_err_msg()}
+        message = {
+            "message": f"User with id<{e.get_owner_id()}> doesn't "
+            f"own wallet with id<{e.get_wallet_id()}>"
+        }
         content = {"error": message}
         return JSONResponse(
             status_code=400,

@@ -37,7 +37,8 @@ class SameWalletTransactionError(Exception):
 
 
 class ConverterError(Exception):
-    def get_err_msg(self) -> str:
+    @staticmethod
+    def get_error_message() -> str:
         return "converter has met an error"
 
 
@@ -46,11 +47,11 @@ class WrongOwnerError(Exception):
     owner_id: str
     wallet_id: str
 
-    def get_err_msg(self) -> str:
-        return (
-            f"User with id<{self.owner_id}> doesn't "
-            f"own wallet with id<{self.wallet_id}>"
-        )
+    def get_owner_id(self) -> str:
+        return self.owner_id
+
+    def get_wallet_id(self) -> str:
+        return self.wallet_id
 
 
 class NoAccessError(Exception):

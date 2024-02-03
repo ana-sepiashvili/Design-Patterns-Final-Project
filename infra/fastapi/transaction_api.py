@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
-from core.errors import DoesNotExistError, SameWalletTransactionError
+from core.errors import DoesNotExistError, SameWalletTransactionError, WrongOwnerError
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
     UserRepositoryDependable,
@@ -47,17 +47,23 @@ class TransactionListEnvelope(BaseModel):
 
 
 @transaction_api.post(
-    "/transactions", status_code=201, response_model=TransactionItemEnvelope
+    "/transactions/{api_key}", status_code=201, response_model=TransactionItemEnvelope
 )
 def make_transaction(
-        request: MakeTransactionRequest,
-        transactions: TransactionRepositoryDependable,
-        wallets: WalletRepositoryDependable,
+    api_key: UUID,
+    request: MakeTransactionRequest,
+    transactions: TransactionRepositoryDependable,
+    wallets: WalletRepositoryDependable,
+    users: UserRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     args = request.model_dump()
     try:
+        users.read(api_key)
+        wallets.wallet_belongs_to_owner(api_key, args["from_id"])
         transaction_factory = TransactionFactory(wallets)
-        transaction = transaction_factory.create_transaction(args["from_id"], args["to_id"], args["bitcoin_amount"])
+        transaction = transaction_factory.create_transaction(
+            args["from_id"], args["to_id"], args["bitcoin_amount"]
+        )
         wallets.make_transaction(transaction)
         try:
             transactions.add(transaction)
@@ -69,32 +75,43 @@ def make_transaction(
                 content={
                     "error": {
                         "message": f"You cannot transfer from wallet"
-                                   f" with id<{wallet_id}> to itself."
+                        f" with id<{wallet_id}> to itself."
                     }
                 },
             )
 
     except DoesNotExistError as e:
+        message = {"message": f"{e.get_type()} with id<{e.get_id()}> does not exist."}
+        content = {"error": message}
         return JSONResponse(
             status_code=404,
-            content={
-                "error": {"message": f"Wallet with id<{e.get_id()}> does not exist."}
-            },
+            content=content,
+        )
+
+    except WrongOwnerError as we:
+        message = {
+            "message": f"User with id<{we.get_owner_id()}> doesn't "
+            f"own wallet with id<{we.get_wallet_id()}>"
+        }
+        content = {"error": message}
+        return JSONResponse(
+            status_code=400,
+            content=content,
         )
 
 
 @transaction_api.get(
-    "/transactions/{user_id}", status_code=200, response_model=TransactionListEnvelope
+    "/transactions/{api_key}", status_code=200, response_model=TransactionListEnvelope
 )
 def read_user_transactions(
-        user_id: UUID,
-        wallets: WalletRepositoryDependable,
-        transactions: TransactionRepositoryDependable,
-        users: UserRepositoryDependable,
+    api_key: UUID,
+    wallets: WalletRepositoryDependable,
+    transactions: TransactionRepositoryDependable,
+    users: UserRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     try:
-        users.read(user_id)
-        wallets_list = wallets.read_with_user_id(user_id)
+        users.read(api_key)
+        wallets_list = wallets.read_with_user_id(api_key)
         result = []
         for wallet in wallets_list:
             result.extend(transactions.read_wallet_transactions(wallet.get_id()))

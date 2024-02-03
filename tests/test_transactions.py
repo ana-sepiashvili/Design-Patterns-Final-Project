@@ -1,3 +1,4 @@
+import uuid
 from unittest.mock import ANY
 from uuid import UUID, uuid4
 
@@ -29,7 +30,9 @@ def test_should_create(client: TestClient) -> None:
         "bitcoin_amount": 0.3,
         "bitcoin_fee": 0.0,
     }
-    response = client.post("/transactions", json=fake_trans_dict)
+    response = client.post(
+        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+    )
 
     assert response.status_code == 201
     assert response.json() == {"transaction": {"id": ANY, **fake_trans_dict}}
@@ -41,7 +44,9 @@ def test_should_create_with_fee(client: TestClient) -> None:
         "to_id": TEST_USER2_WALLET,
         "bitcoin_amount": 0.3,
     }
-    response = client.post("/transactions", json=fake_trans_dict)
+    response = client.post(
+        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+    )
 
     assert response.status_code == 201
     assert response.json() == {
@@ -62,11 +67,32 @@ def test_should_not_create_with_unknown_wallet(client: TestClient) -> None:
         "to_id": TEST_USER1_WALLET2,
         "bitcoin_amount": 0.3,
     }
-    response = client.post("/transactions", json=fake_trans_dict)
+    response = client.post(
+        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+    )
 
     assert response.status_code == 404
     assert response.json() == {
         "error": {"message": f"Wallet with id<{unknown_id}> does not exist."}
+    }
+
+
+def test_should_not_create_with_wrong_owner(client: TestClient) -> None:
+    fake_trans_dict = {
+        "from_id": TEST_USER2_WALLET,
+        "to_id": TEST_USER1_WALLET2,
+        "bitcoin_amount": 0.3,
+    }
+    response = client.post(
+        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "error": {
+            "message": f"User with id<{TEST_USER1_ID}> doesn't "
+            f"own wallet with id<{TEST_USER2_WALLET}>"
+        }
     }
 
 
@@ -76,7 +102,9 @@ def test_should_not_create_with_same_wallet(client: TestClient) -> None:
         "to_id": TEST_USER1_WALLET1,
         "bitcoin_amount": 0.3,
     }
-    response = client.post("/transactions", json=fake_trans_dict)
+    response = client.post(
+        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+    )
 
     assert response.status_code == 400
     assert response.json() == {
@@ -100,7 +128,7 @@ def test_get_user_transactions(client: TestClient) -> None:
         "to_id": TEST_USER2_WALLET,
         "bitcoin_amount": 0.3,
     }
-    client.post("/transactions", json=fake_trans_dict)
+    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict)
     response = client.get(f"/transactions/{UUID(TEST_USER1_ID)}")
 
     assert response.status_code == 200
@@ -124,7 +152,7 @@ def test_should_not_get_unknown_user_transactions(client: TestClient) -> None:
         "to_id": str(uuid4()),
         "bitcoin_amount": 0.3,
     }
-    client.post("/transactions", json=fake_trans_dict)
+    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict)
     response = client.get(f"/transactions/{UUID(unknown_id)}")
 
     assert response.status_code == 404
