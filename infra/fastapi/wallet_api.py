@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from core.converter import btc_to_usd
 from core.errors import DoesNotExistError, ThreeWalletsError
 from core.wallet import Wallet
 from infra.fastapi.dependables import (
@@ -85,7 +86,7 @@ def get_wallet(
         result = {
             "wallet_id": str(wallet.get_id()),
             "balance_btc": wallet.get_balance(),
-            "balance_usd": wallet.get_balance() * 42316.90,
+            "balance_usd": btc_to_usd(wallet.get_balance()),
         }
         return {"wallet": result}
     except DoesNotExistError:

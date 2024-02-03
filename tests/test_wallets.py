@@ -5,8 +5,9 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
+from core.converter import btc_to_usd
 from fake import Fake
-from runner.constants import TEST_DATABASE_NAME
+from runner.constants import TEST_DATABASE_NAME, DEFAULT_BALANCE
 from runner.setup import init_app
 from runner.setup_database import create_database
 
@@ -33,7 +34,9 @@ def test_should_create(client: TestClient) -> None:
     wallet = Fake().wallet({"owner_id": owner_id})
     response = client.post("/wallets", json=wallet)
 
-    expected = {"wallet_id": ANY, "balance_btc": 1, "balance_usd": 42316.90}
+    expected = {"wallet_id": ANY,
+                "balance_btc": DEFAULT_BALANCE,
+                "balance_usd": btc_to_usd(DEFAULT_BALANCE)}
     assert response.status_code == 201
     assert response.json() == {"wallet": expected}
 
