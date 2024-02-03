@@ -6,18 +6,14 @@ from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
 from core.errors import DoesNotExistError, SameWalletTransactionError
-from core.transaction import Transaction
 from infra.fastapi.dependables import (
     TransactionRepositoryDependable,
     UserRepositoryDependable,
     WalletRepositoryDependable,
 )
-from runner.constants import TRANSACTION_FEE
+from infra.transaction_factory import TransactionFactory
 
 transaction_api = APIRouter(tags=["Transactions"])
-
-
-# test branch
 
 
 class MakeTransactionRequest(BaseModel):
@@ -54,21 +50,14 @@ class TransactionListEnvelope(BaseModel):
     "/transactions", status_code=201, response_model=TransactionItemEnvelope
 )
 def make_transaction(
-    request: MakeTransactionRequest,
-    transactions: TransactionRepositoryDependable,
-    wallets: WalletRepositoryDependable,
+        request: MakeTransactionRequest,
+        transactions: TransactionRepositoryDependable,
+        wallets: WalletRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     args = request.model_dump()
     try:
-        if wallets.has_same_owner(args["from_id"], args["to_id"]):
-            transaction = Transaction(**request.model_dump())
-        else:
-            transaction = Transaction(
-                args["from_id"],
-                args["to_id"],
-                args["bitcoin_amount"] * (1 - TRANSACTION_FEE),
-                args["bitcoin_amount"] * TRANSACTION_FEE,
-            )
+        transaction_factory = TransactionFactory(wallets)
+        transaction = transaction_factory.create_transaction(args["from_id"], args["to_id"], args["bitcoin_amount"])
         wallets.make_transaction(transaction)
         try:
             transactions.add(transaction)
@@ -79,7 +68,8 @@ def make_transaction(
                 status_code=400,
                 content={
                     "error": {
-                        "message": f"You cannot transfer from wallet with id<{wallet_id}> to itself."
+                        "message": f"You cannot transfer from wallet"
+                                   f" with id<{wallet_id}> to itself."
                     }
                 },
             )
@@ -97,10 +87,10 @@ def make_transaction(
     "/transactions/{user_id}", status_code=200, response_model=TransactionListEnvelope
 )
 def read_user_transactions(
-    user_id: UUID,
-    wallets: WalletRepositoryDependable,
-    transactions: TransactionRepositoryDependable,
-    users: UserRepositoryDependable,
+        user_id: UUID,
+        wallets: WalletRepositoryDependable,
+        transactions: TransactionRepositoryDependable,
+        users: UserRepositoryDependable,
 ) -> dict[str, Any] | JSONResponse:
     try:
         users.read(user_id)
