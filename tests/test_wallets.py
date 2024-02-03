@@ -83,18 +83,17 @@ def test_should_get_transactions(client: TestClient) -> None:
     fake_trans_dict = {
         "from_id": str(wallet1_id),
         "to_id": str(wallet2_id),
-        "bitcoin_amount": 3,
+        "bitcoin_amount": 0.2,
     }
     fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
     response = client.post("/transactions", json=fake_transaction)
     print("ADD TRANS")
     print(response.json())
     print(response.status_code)
-    response = client.get(f"/wallets/{wallet1_id}/transactions")
+    response = client.get(f"/wallets/{uuid.UUID(wallet1_id)}/transactions")
     print("GOT trans")
     print(response)
     assert response.status_code == 200
-
 
 # def test_read_all(client: TestClient):
 #     p1 = {"unit_id": str(uuid4()), "name": "Coa", "barcode": "1", "price": 12}
