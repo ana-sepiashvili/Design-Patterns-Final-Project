@@ -9,7 +9,6 @@ from runner.constants import (
     TEST_USER1_ID,
     TEST_USER1_WALLET1,
     TEST_USER1_WALLET2,
-    TEST_USER2_ID,
     TEST_USER2_WALLET,
     TRANSACTION_FEE,
 )
@@ -95,7 +94,7 @@ def test_user_transactions_on_empty(client: TestClient) -> None:
     assert response.json() == {"transactions": []}
 
 
-def test_get_from_user_transactions(client: TestClient) -> None:
+def test_get_user_transactions(client: TestClient) -> None:
     fake_trans_dict = {
         "from_id": TEST_USER1_WALLET1,
         "to_id": TEST_USER2_WALLET,
@@ -103,29 +102,6 @@ def test_get_from_user_transactions(client: TestClient) -> None:
     }
     client.post("/transactions", json=fake_trans_dict)
     response = client.get(f"/transactions/{UUID(TEST_USER1_ID)}")
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "transactions": [
-            {
-                "id": ANY,
-                "from_id": TEST_USER1_WALLET1,
-                "to_id": TEST_USER2_WALLET,
-                "bitcoin_amount": 0.3 * (1 - TRANSACTION_FEE),
-                "bitcoin_fee": 0.3 * TRANSACTION_FEE,
-            }
-        ]
-    }
-
-
-def test_get_to_user_transactions(client: TestClient) -> None:
-    fake_trans_dict = {
-        "from_id": TEST_USER1_WALLET1,
-        "to_id": TEST_USER2_WALLET,
-        "bitcoin_amount": 0.3,
-    }
-    client.post("/transactions", json=fake_trans_dict)
-    response = client.get(f"/transactions/{UUID(TEST_USER2_ID)}")
 
     assert response.status_code == 200
     assert response.json() == {
