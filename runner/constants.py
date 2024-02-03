@@ -19,3 +19,5 @@ TRANSACTIONS_TABLE_COLUMNS = (
 )
 
 TRANSACTION_FEE = 0.015
+BTC_TO_SAT = 100000000
+CONVERSION_API_LINK = "https://api.coingecko.com/api/v3/simple/price"
