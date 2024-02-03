@@ -103,9 +103,9 @@ def get_wallet_transactions(
         for transaction in transactions_list:
             result.append(
                 {
-                    "transaction_id": transaction.get_id(),
-                    "from_id": transaction.get_from_id(),
-                    "to_id": transaction.get_to_id(),
+                    "transaction_id": str(transaction.get_id()),
+                    "from_id": str(transaction.get_from_id()),
+                    "to_id": str(transaction.get_to_id()),
                     "bitcoin_amount": transaction.get_bitcoin_amount(),
                     "bitcoin_fee": transaction.get_bitcoin_fee(),
                 }
