@@ -64,7 +64,7 @@ class SqlTransactionRepository:
                 return result
 
     def read_statistics(self, admin_key: UUID) -> Statistics:
-        if admin_key == ADMIN_API_KEY:
+        if str(admin_key) != ADMIN_API_KEY:
             raise NoAccessError(str(admin_key))
 
         with self.database.connect() as connection:

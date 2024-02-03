@@ -16,8 +16,7 @@ TRANSACTIONS_TABLE_COLUMNS = (
 ADMIN_API_KEY = "6e0773d0-8975-4720-b8fe-19985a350084"
 
 TRANSACTION_FEE = 0.015
-BTC_TO_SAT = 100000000
-CONVERSION_API_LINK = "https://api.coingecko.com/api/v3/simple/price"
+CONVERSION_API_LINK = "https://blockchain.info/ticker"
 
 TEST_USER1_ID = "51bb4fc6-9a08-4791-a599-a794543dbde7"
 TEST_USER2_ID = "854a7b15-3b4e-4a3c-b100-65bd59ddddba"

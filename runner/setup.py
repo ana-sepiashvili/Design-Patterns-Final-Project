@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from infra.fastapi.statistics_api import statistics_api
 from infra.fastapi.transaction_api import transaction_api
 from infra.fastapi.user_api import user_api
 from infra.fastapi.wallet_api import wallet_api
@@ -23,6 +24,7 @@ def init_app(db_name: str) -> FastAPI:
     app.include_router(user_api)
     app.include_router(wallet_api)
     app.include_router(transaction_api)
+    app.include_router(statistics_api)
 
     db = DatabaseHandler(db_name)
 
