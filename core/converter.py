@@ -1,7 +1,7 @@
 import requests
 
 from core.errors import ConverterError
-from runner.constants import BTC_TO_SAT, CONVERSION_API_LINK
+from runner.constants import BTC_TO_SAT
 
 
 def btc_to_usd(btc: float) -> float:

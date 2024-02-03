@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from core.errors import ConverterError
 from fake import Fake
-from runner.constants import TEST_DATABASE_NAME, DEFAULT_BALANCE
+from runner.constants import DEFAULT_BALANCE, TEST_DATABASE_NAME
 from runner.setup import init_app
 from runner.setup_database import create_database
 
@@ -38,9 +38,11 @@ def test_should_create(client: TestClient) -> None:
         wallet = Fake().wallet({"owner_id": owner_id})
         response = client.post("/wallets", json=wallet)
 
-        expected = {"wallet_id": ANY,
-                    "balance_btc": DEFAULT_BALANCE,
-                    "balance_usd": ANY}
+        expected = {
+            "wallet_id": ANY,
+            "balance_btc": DEFAULT_BALANCE,
+            "balance_usd": ANY,
+        }
         assert response.status_code == 201
         assert response.json() == {"wallet": expected}
     except ConverterError as e:
@@ -95,9 +97,11 @@ def test_should_read_exsistent(client: TestClient) -> None:
         wallet_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
         response = client.get(f"/wallets/{wallet_id}")
 
-        expected = {"wallet_id": ANY,
-                    "balance_btc": DEFAULT_BALANCE,
-                    "balance_usd": ANY}
+        expected = {
+            "wallet_id": ANY,
+            "balance_btc": DEFAULT_BALANCE,
+            "balance_usd": ANY,
+        }
         assert response.status_code == 200
         assert response.json() == {"wallet": expected}
     except ConverterError as e:
