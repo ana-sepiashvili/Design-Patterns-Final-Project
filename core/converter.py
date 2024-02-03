@@ -1,35 +1,27 @@
-from dataclasses import dataclass
-from typing import Protocol
-
 import requests
 
 from core.errors import ConverterError
-from runner.constants import BTC_TO_SAT, CONVERSION_API_LINK
+from runner.constants import BTC_TO_SAT
 
 
-class ConverterProtocol(Protocol):
-    def btc_to_usd(self) -> float:
-        pass
+def btc_to_usd(btc: float) -> float:
+    url = "https://blockchain.info/ticker"
 
-    def btc_to_sat(self) -> int:
-        pass
+    response = requests.get(url, params=None)
+    if response.status_code == 200:
+        rate: float = response.json()["USD"]["last"]
+        return btc * rate
+    # url = CONVERSION_API_LINK
+    # params = {"ids": "bitcoin", "vs_currencies": "usd"}
+    #
+    # response = requests.get(url, params=params)
+    #
+    # if response.status_code == 200:
+    #     btc_to_usd_rate: float = response.json()["bitcoin"]["usd"]
+    #     return btc * btc_to_usd_rate
+    else:
+        raise ConverterError
 
 
-@dataclass
-class Converter:
-    btc: float
-
-    def btc_to_usd(self) -> float:
-        url = CONVERSION_API_LINK
-        params = {"ids": "bitcoin", "vs_currencies": "usd"}
-
-        response = requests.get(url, params=params)
-
-        if response.status_code == 200:
-            btc_to_usd_rate = response.json()["bitcoin"]["usd"]
-            return self.btc * btc_to_usd_rate
-        else:
-            raise ConverterError
-
-    def btc_to_sat(self) -> int:
-        return self.btc * BTC_TO_SAT
+def btc_to_sat(btc: float) -> int:
+    return round(btc * BTC_TO_SAT)

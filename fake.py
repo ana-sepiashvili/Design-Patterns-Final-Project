@@ -1,5 +1,6 @@
-from dataclasses import field, dataclass
+from dataclasses import dataclass, field
 from typing import Any
+
 from faker import Faker
 
 
@@ -7,19 +8,15 @@ from faker import Faker
 class Fake:
     faker: Faker = field(default_factory=Faker)
 
-    def wallet(self, attributes=None) -> dict[str, Any]:
-        if attributes is None:
-            attributes = {}
+    def wallet(self, attributes: dict[str, Any]) -> dict[str, Any]:
         wallet_dict = {}
         if len(attributes.keys()) == 0:
-            wallet_dict = {"owner_id": str(self.faker.uuid4()), "balance": 1}
+            wallet_dict = {"owner_id": str(self.faker.uuid4())}
         else:
             wallet_dict = attributes
         return wallet_dict
 
-    def transaction_for_wallet(self, attributes=None) -> dict[str, Any]:
-        if attributes is None:
-            attributes = {}
+    def transaction_for_wallet(self, attributes: dict[str, Any]) -> dict[str, Any]:
         transaction_dict = {}
         if len(attributes.keys()) == 0:
             transaction_dict = {

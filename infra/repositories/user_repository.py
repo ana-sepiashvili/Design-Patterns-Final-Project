@@ -38,7 +38,7 @@ class SqlUserRepository:
             )
             result = cursor.fetchone()
             if result is None:
-                raise DoesNotExistError(str(user_id))
+                raise DoesNotExistError(str(user_id), "User")
             else:
                 return User(
                     result[1],
