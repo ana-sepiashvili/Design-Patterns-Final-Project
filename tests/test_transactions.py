@@ -82,7 +82,8 @@ def test_should_not_create_with_same_wallet(client: TestClient) -> None:
     assert response.status_code == 400
     assert response.json() == {
         "error": {
-            "message": f"You cannot transfer from wallet with id<{TEST_USER1_WALLET1}> to itself."
+            "message": f"You cannot transfer from wallet with"
+            f" id<{TEST_USER1_WALLET1}> to itself."
         }
     }
 

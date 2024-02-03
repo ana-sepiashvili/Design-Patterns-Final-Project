@@ -38,3 +38,6 @@ class TransactionRepository(Protocol):
 
     def read_wallet_transactions(self, wallet_id: uuid.UUID) -> list[Transaction]:
         pass
+
+    def read_statistics(self, admin_key: UUID) -> Statistics:
+        pass

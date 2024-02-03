@@ -13,6 +13,8 @@ TRANSACTIONS_TABLE_COLUMNS = (
     "id TEXT, from_id TEXT, to_id TEXT, bitcoin_amount DOUBLE, bitcoin_fee DOUBLE"
 )
 
+ADMIN_API_KEY = "6e0773d0-8975-4720-b8fe-19985a350084"
+
 TRANSACTION_FEE = 0.015
 BTC_TO_SAT = 100000000
 CONVERSION_API_LINK = "https://api.coingecko.com/api/v3/simple/price"

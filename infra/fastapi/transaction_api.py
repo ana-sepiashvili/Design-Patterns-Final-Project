@@ -79,7 +79,8 @@ def make_transaction(
                 status_code=400,
                 content={
                     "error": {
-                        "message": f"You cannot transfer from wallet with id<{wallet_id}> to itself."
+                        "message": f"You cannot transfer from wallet"
+                        f" with id<{wallet_id}> to itself."
                     }
                 },
             )

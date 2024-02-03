@@ -1,9 +1,14 @@
 import uuid
 from uuid import UUID
 
-from core.errors import SameWalletTransactionError
+from core.errors import (
+    SameWalletTransactionError,
+    NoAccessError,
+)
+from core.statistics import Statistics
 from core.transaction import Transaction
 from infra.repositories.database import DatabaseHandler
+from runner.constants import ADMIN_API_KEY
 
 
 class SqlTransactionRepository:
@@ -60,3 +65,18 @@ class SqlTransactionRepository:
                     for value in values
                 ]
                 return result
+
+    def read_statistics(self, admin_key: UUID) -> Statistics:
+        if admin_key == ADMIN_API_KEY:
+            raise NoAccessError(str(admin_key))
+
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            cursor.execute(f"SELECT COUNT(*), SUM(bitcoin_fee) FROM {self.table_name}")
+
+            values = cursor.fetchone()
+            n_transactions = values[0]
+            profit = 0.0
+            if n_transactions != 0:
+                profit = values[1]
+            return Statistics(n_transactions, profit)
