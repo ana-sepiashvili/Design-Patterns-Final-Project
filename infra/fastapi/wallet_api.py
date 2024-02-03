@@ -72,7 +72,7 @@ def create_wallet(
     result = {
         "wallet_id": str(wallet.get_id()),
         "balance_btc": wallet.get_balance(),
-        "balance_usd": wallet.get_balance() * 42316.90,
+        "balance_usd": btc_to_usd(wallet.get_balance()),
     }
     return {"wallet": result}
 
