@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Protocol
+
 import requests
 
 from core.errors import ConverterError
@@ -20,15 +21,12 @@ class Converter:
 
     def btc_to_usd(self) -> float:
         url = CONVERSION_API_LINK
-        params = {
-            'ids': 'bitcoin',
-            'vs_currencies': 'usd'
-        }
+        params = {"ids": "bitcoin", "vs_currencies": "usd"}
 
         response = requests.get(url, params=params)
 
         if response.status_code == 200:
-            btc_to_usd_rate = response.json()['bitcoin']['usd']
+            btc_to_usd_rate = response.json()["bitcoin"]["usd"]
             return self.btc * btc_to_usd_rate
         else:
             raise ConverterError
