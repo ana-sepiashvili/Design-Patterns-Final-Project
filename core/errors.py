@@ -25,12 +25,16 @@ class SameWalletTransactionError(Exception):
     pass
 
 
-class NoTransactionsError(Exception):
-    id: str
-
-    def get_id(self) -> str:
-        return self.id
+# class NoTransactionsError(Exception):
+#     id: str
+#
+#     def get_id(self) -> str:
+#         return self.id
 
 
 class ConverterError(Exception):
+    pass
+
+
+class NoAccessError(Exception):
     pass
