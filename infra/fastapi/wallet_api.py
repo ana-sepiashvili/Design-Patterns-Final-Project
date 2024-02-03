@@ -83,6 +83,8 @@ def get_wallet(
 ) -> dict[str, Any] | JSONResponse:
     try:
         wallet = wallets.read_with_wallet_id(wallet_id)
+        print("EEEEEEEEEEEEE")
+        print(btc_to_usd(1.0))
         result = {
             "wallet_id": str(wallet.get_id()),
             "balance_btc": wallet.get_balance(),

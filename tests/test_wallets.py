@@ -34,6 +34,8 @@ def test_should_create(client: TestClient) -> None:
     wallet = Fake().wallet({"owner_id": owner_id})
     response = client.post("/wallets", json=wallet)
 
+    print("TTTTTTTTTTTTT")
+    print(btc_to_usd(1.0))
     expected = {"wallet_id": ANY,
                 "balance_btc": DEFAULT_BALANCE,
                 "balance_usd": btc_to_usd(DEFAULT_BALANCE)}
@@ -82,7 +84,9 @@ def test_should_read_exsistent(client: TestClient) -> None:
     wallet_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
     response = client.get(f"/wallets/{wallet_id}")
 
-    expected = {"wallet_id": ANY, "balance_btc": 1, "balance_usd": 42316.90}
+    expected = {"wallet_id": ANY,
+                "balance_btc": DEFAULT_BALANCE,
+                "balance_usd": btc_to_usd(DEFAULT_BALANCE)}
     assert response.status_code == 200
     assert response.json() == {"wallet": expected}
 
