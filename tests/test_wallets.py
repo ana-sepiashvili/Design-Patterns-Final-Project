@@ -8,12 +8,11 @@ from fastapi.testclient import TestClient
 from core.errors import ConverterError
 from runner.constants import (
     DEFAULT_BALANCE,
-    TEST_DATABASE_NAME,
-    TEST_USER1_WALLET1,
-    TEST_USER1_ID,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
-    TEST_USER2_WALLET,
+    TEST_USER1_ID,
+    TEST_USER1_WALLET1,
     TEST_USER2_ID,
+    TEST_USER2_WALLET,
     TRANSACTION_FEE,
 )
 from runner.setup import init_app
@@ -40,10 +39,7 @@ def test_should_not_create_for_unknown(client: TestClient) -> None:
 
 def test_should_create(client: TestClient) -> None:
     try:
-        user = Fake().user()
-        response = client.post("/users", json=user)
-        owner_id = response.json()["id"]
-        response = client.post("/wallets", headers={"api_key": owner_id})
+        response = client.post("/wallets", headers={"api_key": TEST_USER1_ID})
 
         expected = {
             "wallet_id": ANY,
@@ -78,9 +74,7 @@ def test_should_not_create_more_than_three(client: TestClient) -> None:
 def test_should_not_read_unknown(client: TestClient) -> None:
     try:
         unknown_id = uuid4()
-        user = Fake().user()
-        response = client.post("/users", json=user)
-        owner_id = response.json()["id"]
+        owner_id = TEST_USER1_ID
 
         response = client.get(f"/wallets/{unknown_id}", headers={"api_key": owner_id})
         message = {"message": f"Wallet with id<{unknown_id}> does not exist."}
@@ -94,11 +88,8 @@ def test_should_not_read_unknown(client: TestClient) -> None:
 
 def test_should_read_own(client: TestClient) -> None:
     try:
-        user = Fake().user()
-        response = client.post("/users", json=user)
-        owner_id = response.json()["id"]
-        response = client.post("/wallets", headers={"api_key": owner_id})
-        wallet_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
+        owner_id = TEST_USER1_ID
+        wallet_id = uuid.UUID(TEST_USER1_WALLET1)
         response = client.get(f"/wallets/{wallet_id}", headers={"api_key": owner_id})
 
         expected = {
@@ -115,19 +106,13 @@ def test_should_read_own(client: TestClient) -> None:
 
 def test_should_not_read_others_wallet(client: TestClient) -> None:
     try:
-        user1 = Fake().user()
-        user2 = Fake().user()
-        response = client.post("/users", json=user1)
-        owner1_id = response.json()["id"]
-        response = client.post("/wallets", headers={"api_key": owner1_id})
-        wallet_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
-        response = client.post("/users", json=user2)
-        owner2_id = response.json()["id"]
+        owner_id = TEST_USER1_ID
+        wallet_id = uuid.UUID(TEST_USER2_WALLET)
 
-        response = client.get(f"/wallets/{wallet_id}", headers={"api_key": owner2_id})
+        response = client.get(f"/wallets/{wallet_id}", headers={"api_key": owner_id})
         expected = {
             "message": (
-                f"User with id<{owner2_id}> doesn't " f"own wallet with id<{wallet_id}>"
+                f"User with id<{owner_id}> doesn't " f"own wallet with id<{wallet_id}>"
             )
         }
 
@@ -139,16 +124,9 @@ def test_should_not_read_others_wallet(client: TestClient) -> None:
 
 def test_should_get_transactions(client: TestClient) -> None:
     try:
-        user1 = Fake().user()
-        response = client.post("/users", json=user1)
-        owner1_id = response.json()["id"]
-        user2 = Fake().user()
-        response = client.post("/users", json=user2)
-        owner2_id = response.json()["id"]
-        response = client.post("/wallets", headers={"api_key": owner1_id})
-        wallet1_id = response.json()["wallet"]["wallet_id"]
-        response = client.post("/wallets", headers={"api_key": owner2_id})
-        wallet2_id = response.json()["wallet"]["wallet_id"]
+        owner1_id = TEST_USER1_ID
+        wallet1_id = uuid.UUID(TEST_USER1_WALLET1)
+        wallet2_id = uuid.UUID(TEST_USER2_WALLET)
 
         fake_trans_dict = {
             "from_id": str(wallet1_id),
@@ -158,20 +136,48 @@ def test_should_get_transactions(client: TestClient) -> None:
         fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
         client.post(f"/transactions/{uuid.UUID(owner1_id)}", json=fake_transaction)
         response = client.get(
-            f"/wallets/{uuid.UUID(wallet1_id)}/transactions",
+            f"/wallets/{wallet1_id}/transactions",
             headers={"api_key": owner1_id},
         )
         expected = [
             {
                 "transaction_id": ANY,
-                "from_id": wallet1_id,
-                "to_id": wallet2_id,
+                "from_id": str(wallet1_id),
+                "to_id": str(wallet2_id),
                 "bitcoin_amount": 0.197,
                 "bitcoin_fee": 0.003,
             }
         ]
         assert response.status_code == 200
         assert response.json() == {"transactions": expected}
+    except ConverterError as e:
+        print(e.get_error_message())
+
+
+def test_transaction_should_reflect_on_wallet(client: TestClient) -> None:
+    try:
+        wallet2_id = uuid.UUID(TEST_USER2_WALLET)
+        wallet1_id = uuid.UUID(TEST_USER1_WALLET1)
+        owner1_id = TEST_USER1_ID
+
+        fake_trans_dict = {
+            "from_id": str(wallet1_id),
+            "to_id": str(wallet2_id),
+            "bitcoin_amount": 0.2,
+        }
+        fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
+        client.post(f"/transactions/{uuid.UUID(owner1_id)}", json=fake_transaction)
+        response = client.get(
+            f"/wallets/{wallet1_id}",
+            headers={"api_key": owner1_id},
+        )
+        expected = {
+            "balance_btc": 0.7999999999999999,
+            "balance_usd": ANY,
+            "wallet_id": str(wallet1_id),
+        }
+        assert response.status_code == 200
+        assert response.json() == {"wallet": expected}
     except ConverterError as e:
         print(e.get_error_message())
 
@@ -193,9 +199,7 @@ def test_should_not_get_transactions_with_fake_key(client: TestClient) -> None:
 
 def test_should_not_get_transactions_of_fake_wallet(client: TestClient) -> None:
     try:
-        user = Fake().user()
-        response = client.post("/users", json=user)
-        owner_id = response.json()["id"]
+        owner_id = TEST_USER1_ID
         random_id = str(uuid4())
 
         response = client.get(
@@ -211,21 +215,15 @@ def test_should_not_get_transactions_of_fake_wallet(client: TestClient) -> None:
 
 def test_should_not_get_transactions_of_others_wallet(client: TestClient) -> None:
     try:
-        user1 = Fake().user()
-        user2 = Fake().user()
-        response = client.post("/users", json=user1)
-        owner1_id = response.json()["id"]
-        response = client.post("/users", json=user2)
-        owner2_id = response.json()["id"]
-        response = client.post("/wallets", headers={"api_key": owner1_id})
-        wallet_id = uuid.UUID(response.json()["wallet"]["wallet_id"])
+        other_id = TEST_USER2_ID
+        wallet_id = TEST_USER1_WALLET1
 
         response = client.get(
-            f"/wallets/{wallet_id}/transactions", headers={"api_key": owner2_id}
+            f"/wallets/{wallet_id}/transactions", headers={"api_key": other_id}
         )
         expected = {
             "message": (
-                f"User with id<{owner2_id}> doesn't " f"own wallet with id<{wallet_id}>"
+                f"User with id<{other_id}> doesn't " f"own wallet with id<{wallet_id}>"
             )
         }
 
