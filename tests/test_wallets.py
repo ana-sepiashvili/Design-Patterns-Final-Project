@@ -6,7 +6,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.errors import ConverterError
-from runner.constants import DEFAULT_BALANCE, TEST_DATABASE_NAME
+from runner.constants import (
+    DEFAULT_BALANCE,
+    TEST_DATABASE_NAME,
+    TEST_USER1_WALLET1,
+    TEST_USER1_ID,
+    TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
+    TEST_USER2_WALLET,
+    TEST_USER2_ID,
+    TRANSACTION_FEE,
+)
 from runner.setup import init_app
 from runner.setup_database import create_database
 from tests.fake import Fake
@@ -14,8 +23,8 @@ from tests.fake import Fake
 
 @pytest.fixture
 def client() -> TestClient:
-    create_database(TEST_DATABASE_NAME)
-    return TestClient(init_app(TEST_DATABASE_NAME))
+    create_database(TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS)
+    return TestClient(init_app(TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS))
 
 
 def test_should_not_create_for_unknown(client: TestClient) -> None:
@@ -224,3 +233,32 @@ def test_should_not_get_transactions_of_others_wallet(client: TestClient) -> Non
         assert response.json() == {"error": expected}
     except ConverterError as e:
         print(e.get_error_message())
+
+
+def test_should_update_wallet_including_fee_after_transaction() -> None:
+    create_database(TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS)
+    client = TestClient(init_app(TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS))
+    fake_trans_dict = {
+        "from_id": TEST_USER1_WALLET1,
+        "to_id": TEST_USER2_WALLET,
+        "bitcoin_amount": 0.3,
+        "bitcoin_fee": 0.0,
+    }
+    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict)
+
+    response = client.get(
+        f"/wallets/{TEST_USER1_WALLET1}", headers={"api_key": TEST_USER1_ID}
+    )
+
+    response = client.get(
+        f"/wallets/{TEST_USER2_WALLET}", headers={"api_key": TEST_USER2_ID}
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "wallet": {
+            "wallet_id": TEST_USER2_WALLET,
+            "balance_btc": 1.0 + 0.3 * (1 - TRANSACTION_FEE),
+            "balance_usd": ANY,
+        }
+    }
