@@ -13,6 +13,7 @@ from infra.fastapi.dependables import (
     UserRepositoryDependable,
     WalletRepositoryDependable,
 )
+from runner.constants import WALLET_LIMIT
 
 wallet_api = APIRouter(tags=["Wallets"])
 
@@ -50,7 +51,7 @@ def create_wallet(
         wallet = Wallet(owner_id=api_key)
         wallets.add(wallet)
     except ThreeWalletsError:
-        err_msg = f"User with id<{api_key}> already has 3 wallets."
+        err_msg = f"User with id<{api_key}> already has {WALLET_LIMIT} wallets."
         message = {"message": err_msg}
         content = {"error": message}
         return JSONResponse(

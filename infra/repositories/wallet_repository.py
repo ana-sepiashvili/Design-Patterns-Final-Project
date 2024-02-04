@@ -7,9 +7,10 @@ from core.errors import (
     ThreeWalletsError,
     WrongOwnerError,
 )
-from core.transaction import Transaction
-from core.wallet import Wallet
+from core.transaction import TransactionProtocol
+from core.wallet import Wallet, WalletProtocol
 from infra.repositories.database import DatabaseHandler
+from runner.constants import WALLET_LIMIT
 
 
 class SqlWalletRepository:
@@ -21,7 +22,7 @@ class SqlWalletRepository:
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
 
-    def add(self, wallet: Wallet) -> None:
+    def add(self, wallet: WalletProtocol) -> None:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -29,7 +30,7 @@ class SqlWalletRepository:
                 f"WHERE owner_id = '{wallet.get_owner_id()}'"
             )
             elems = cursor.fetchall()
-            if len(elems) == 3:
+            if len(elems) == WALLET_LIMIT:
                 raise ThreeWalletsError
             else:
                 query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?)"
@@ -43,7 +44,7 @@ class SqlWalletRepository:
                 )
                 connection.commit()
 
-    def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
+    def read_with_wallet_id(self, wallet_id: UUID) -> WalletProtocol:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -55,7 +56,7 @@ class SqlWalletRepository:
             else:
                 return Wallet(UUID(values[1]), values[2], UUID(values[0]))
 
-    def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
+    def read_with_user_id(self, user_id: UUID) -> list[WalletProtocol]:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -65,7 +66,7 @@ class SqlWalletRepository:
             if len(values) == 0:
                 return []
             else:
-                result = [
+                result: list[WalletProtocol] = [
                     Wallet(
                         uuid.UUID(value[1]),
                         value[2],
@@ -97,7 +98,7 @@ class SqlWalletRepository:
             else:
                 return False
 
-    def make_transaction(self, transaction: Transaction) -> None:
+    def make_transaction(self, transaction: TransactionProtocol) -> None:
         wallet1_id = transaction.get_to_id()
         wallet2_id = transaction.get_from_id()
         with self.database.connect() as connection:
@@ -123,9 +124,14 @@ class SqlWalletRepository:
                 f"{value1[2] + transaction.get_bitcoin_amount()}"
                 f" WHERE wallet_id = '{wallet1_id}'"
             )
+            new_balance = (
+                value2[2]
+                - transaction.get_bitcoin_amount()
+                - transaction.get_bitcoin_fee()
+            )
             cursor.execute(
                 f"UPDATE {self.table_name} SET balance = "
-                f"{value2[2] - transaction.get_bitcoin_amount()}"
+                f"{new_balance}"
                 f" WHERE wallet_id = '{wallet2_id}'"
             )
             connection.commit()

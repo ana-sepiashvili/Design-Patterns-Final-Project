@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from core.errors import DoesNotExistError, ExistsError
-from core.user import User
+from core.user import User, UserProtocol
 from infra.repositories.database import DatabaseHandler
 
 
@@ -17,7 +17,7 @@ class SqlUserRepository:
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
 
-    def add(self, user: User) -> None:
+    def add(self, user: UserProtocol) -> None:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             result = cursor.execute(
@@ -30,7 +30,7 @@ class SqlUserRepository:
                 (str(user.get_id()), user.get_email()),
             )
 
-    def read(self, user_id: UUID) -> User:
+    def read(self, user_id: UUID) -> UserProtocol:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -44,8 +44,3 @@ class SqlUserRepository:
                     result[1],
                     uuid.UUID(result[0]),
                 )
-
-    def clear(self) -> None:
-        with self.database.connect() as connection:
-            cursor = connection.cursor()
-            cursor.execute(f"DELETE FROM {self.table_name}")

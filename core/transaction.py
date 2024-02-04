@@ -3,7 +3,24 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from core.statistics import Statistics
+from core.statistics import StatisticsProtocol
+
+
+class TransactionProtocol(Protocol):
+    def get_id(self) -> UUID:
+        pass
+
+    def get_from_id(self) -> UUID:
+        pass
+
+    def get_to_id(self) -> UUID:
+        pass
+
+    def get_bitcoin_amount(self) -> float:
+        pass
+
+    def get_bitcoin_fee(self) -> float:
+        pass
 
 
 @dataclass
@@ -35,11 +52,13 @@ class TransactionRepository(Protocol):
     def create(self) -> None:
         pass
 
-    def add(self, transaction: Transaction) -> None:
+    def add(self, transaction: TransactionProtocol) -> None:
         pass
 
-    def read_wallet_transactions(self, wallet_id: uuid.UUID) -> list[Transaction]:
+    def read_wallet_transactions(
+        self, wallet_id: uuid.UUID
+    ) -> list[TransactionProtocol]:
         pass
 
-    def read_statistics(self, admin_key: UUID) -> Statistics:
+    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
         pass

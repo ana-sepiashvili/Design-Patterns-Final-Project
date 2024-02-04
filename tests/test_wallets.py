@@ -9,7 +9,7 @@ from core.errors import ConverterError
 from runner.constants import DEFAULT_BALANCE, TEST_DATABASE_NAME
 from runner.setup import init_app
 from runner.setup_database import create_database
-from fake import Fake
+from tests.fake import Fake
 
 
 @pytest.fixture

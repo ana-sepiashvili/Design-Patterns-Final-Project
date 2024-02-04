@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from core.transaction import Transaction
+from core.transaction import Transaction, TransactionProtocol
 from core.wallet import WalletRepository
 from runner.constants import TRANSACTION_FEE
 
@@ -12,7 +12,7 @@ class TransactionFactory:
 
     def create_transaction(
         self, from_id: UUID, to_id: UUID, bitcoin_amount: float
-    ) -> Transaction:
+    ) -> TransactionProtocol:
         if self.wallets.has_same_owner(from_id, to_id):
             return Transaction(from_id, to_id, bitcoin_amount)
         else:

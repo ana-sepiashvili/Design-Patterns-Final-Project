@@ -27,11 +27,8 @@ class UserRepository(Protocol):
     def create(self) -> None:
         pass
 
-    def add(self, user: User) -> None:
+    def add(self, user: UserProtocol) -> None:
         pass
 
-    def read(self, user_id: UUID) -> User:
-        pass
-
-    def clear(self) -> None:
+    def read(self, user_id: UUID) -> UserProtocol:
         pass

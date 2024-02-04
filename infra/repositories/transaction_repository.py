@@ -2,8 +2,8 @@ import uuid
 from uuid import UUID
 
 from core.errors import NoAccessError, SameWalletTransactionError
-from core.statistics import Statistics
-from core.transaction import Transaction
+from core.statistics import Statistics, StatisticsProtocol
+from core.transaction import Transaction, TransactionProtocol
 from infra.repositories.database import DatabaseHandler
 from runner.constants import ADMIN_API_KEY
 
@@ -18,7 +18,7 @@ class SqlTransactionRepository:
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
 
-    def add(self, transaction: Transaction) -> None:
+    def add(self, transaction: TransactionProtocol) -> None:
         if transaction.get_from_id() == transaction.get_to_id():
             raise SameWalletTransactionError()
         with self.database.connect() as connection:
@@ -36,7 +36,7 @@ class SqlTransactionRepository:
             )
             connection.commit()
 
-    def read_wallet_transactions(self, wallet_id: UUID) -> list[Transaction]:
+    def read_wallet_transactions(self, wallet_id: UUID) -> list[TransactionProtocol]:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -51,7 +51,7 @@ class SqlTransactionRepository:
                 # raise NoTransactionsError(str(wallet_id))
                 return []
             else:
-                result = [
+                result: list[TransactionProtocol] = [
                     Transaction(
                         uuid.UUID(value[1]),
                         uuid.UUID(value[2]),
@@ -63,7 +63,7 @@ class SqlTransactionRepository:
                 ]
                 return result
 
-    def read_statistics(self, admin_key: UUID) -> Statistics:
+    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
         if str(admin_key) != ADMIN_API_KEY:
             raise NoAccessError(str(admin_key))
 
