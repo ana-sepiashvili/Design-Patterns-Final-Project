@@ -6,6 +6,18 @@ from core.transaction import Transaction
 from runner.constants import DEFAULT_BALANCE
 
 
+class WalletProtocol(Protocol):
+
+    def get_owner_id(self) -> UUID:
+        pass
+
+    def get_id(self) -> UUID:
+        pass
+
+    def get_balance(self) -> float:
+        pass
+
+
 @dataclass
 class Wallet:
     owner_id: UUID

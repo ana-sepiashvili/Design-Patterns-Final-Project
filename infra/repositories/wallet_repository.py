@@ -120,7 +120,7 @@ class SqlWalletRepository:
                 raise NotEnoughMoneyError
             cursor.execute(
                 f"UPDATE {self.table_name} SET balance = "
-                f"{transaction.get_bitcoin_amount() + value1[2]}"
+                f"{value1[2] + transaction.get_bitcoin_amount()}"
                 f" WHERE wallet_id = '{wallet1_id}'"
             )
             cursor.execute(
