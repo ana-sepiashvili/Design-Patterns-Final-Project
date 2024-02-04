@@ -121,12 +121,12 @@ class SqlWalletRepository:
             cursor.execute(
                 f"UPDATE {self.table_name} SET balance = "
                 f"{transaction.get_bitcoin_amount() + value1[2]}"
-                f" WHERE wallet_id = '{value1[0][0]}'"
+                f" WHERE wallet_id = '{wallet1_id}'"
             )
             cursor.execute(
                 f"UPDATE {self.table_name} SET balance = "
                 f"{value2[2] - transaction.get_bitcoin_amount()}"
-                f" WHERE wallet_id = '{value2[0][0]}'"
+                f" WHERE wallet_id = '{wallet2_id}'"
             )
             connection.commit()
 
