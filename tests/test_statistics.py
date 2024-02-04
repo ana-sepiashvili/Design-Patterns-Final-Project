@@ -10,6 +10,7 @@ from runner.constants import (
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
     TEST_USER1_WALLET1,
     TEST_USER2_WALLET,
+    TEST_USER1_ID,
 )
 from runner.setup import init_app
 from runner.setup_database import create_database
@@ -46,7 +47,7 @@ def test_should_get_statistics_with_no_profit() -> None:
         "to_id": TEST_USER2_WALLET,
         "bitcoin_amount": 0.2,
     }
-    client.post("/transactions", json=transaction)
+    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=transaction)
     response = client.get(f"/statistics/{UUID(ADMIN_API_KEY)}")
     res = {"number_of_transactions": 1, "bitcoin_profit": 0.003}
     assert response.status_code == 200

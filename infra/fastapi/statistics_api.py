@@ -21,18 +21,18 @@ class StatisticsItemEnvelope(BaseModel):
 
 
 @statistics_api.get(
-    "/statistics/{user_id}",
+    "/statistics/{api_key}",
     status_code=200,
     response_model=StatisticsItemEnvelope,
 )
 def get_statistics(
-    user_id: UUID, transactions: TransactionRepositoryDependable
+    api_key: UUID, transactions: TransactionRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
-        statistics = transactions.read_statistics(user_id)
+        statistics = transactions.read_statistics(api_key)
         return {"statistics": statistics}
     except NoAccessError:
         return JSONResponse(
             status_code=403,
-            content={"message": f"User with id<{user_id}> does not have admin access."},
+            content={"message": f"User with id<{api_key}> does not have admin access."},
         )

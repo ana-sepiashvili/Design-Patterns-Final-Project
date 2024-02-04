@@ -3,7 +3,7 @@ from unittest.mock import ANY
 import pytest
 from fastapi.testclient import TestClient
 
-from fake import Fake
+from tests.fake import Fake
 from runner.constants import TEST_DATABASE_NAME
 from runner.setup import init_app
 from runner.setup_database import create_database
@@ -22,7 +22,6 @@ def test_should_create(client: TestClient) -> None:
 
     assert response.status_code == 201
     assert response.json() == {"id": ANY}
-    client.app.state.users.clear()  # type: ignore
 
 
 def test_should_not_create(client: TestClient) -> None:
@@ -38,4 +37,3 @@ def test_should_not_create(client: TestClient) -> None:
     assert response.json() == {
         "message": f"User with email<{user_email}> already exists."
     }
-    client.app.state.users.clear()  # type: ignore

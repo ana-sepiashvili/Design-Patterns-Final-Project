@@ -28,13 +28,5 @@ class Fake:
             transaction_dict = attributes
         return transaction_dict
 
-    def transaction(self) -> dict[str, Any]:
-        return {
-            "from_id": str(self.faker.uuid4()),
-            "to_id": str(self.faker.uuid4()),
-            "bitcoin_amount": self.faker.random_float(),
-            "bitcoin_fee": self.faker.random_float(),
-        }
-
     def user(self) -> dict[str, str]:
         return {"email": self.faker.catch_phrase()}

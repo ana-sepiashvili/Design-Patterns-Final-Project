@@ -2,9 +2,19 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from core.transaction import Transaction
-from infra.repositories.database import DatabaseHandler
+from core.transaction import TransactionProtocol
 from runner.constants import DEFAULT_BALANCE
+
+
+class WalletProtocol(Protocol):
+    def get_owner_id(self) -> UUID:
+        pass
+
+    def get_id(self) -> UUID:
+        pass
+
+    def get_balance(self) -> float:
+        pass
 
 
 @dataclass
@@ -25,23 +35,23 @@ class Wallet:
 
 
 class WalletRepository(Protocol):
-    def __init__(self, db: DatabaseHandler, table: str, vals: str) -> None:
-        pass
-
     def create(self) -> None:
         pass
 
-    def add(self, wallet: Wallet) -> None:
+    def add(self, wallet: WalletProtocol) -> None:
         pass
 
-    def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
+    def read_with_wallet_id(self, wallet_id: UUID) -> WalletProtocol:
         pass
 
     def has_same_owner(self, wallet_id1: UUID, wallet_id2: UUID) -> bool:
         pass
 
-    def make_transaction(self, transaction: Transaction) -> None:
+    def make_transaction(self, transaction: TransactionProtocol) -> None:
         pass
 
-    def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
+    def read_with_user_id(self, user_id: UUID) -> list[WalletProtocol]:
+        pass
+
+    def wallet_belongs_to_owner(self, owner_id: UUID, wallet_id: UUID) -> None:
         pass

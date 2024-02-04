@@ -16,9 +16,13 @@ class NotEnoughMoneyError(Exception):
 @dataclass
 class DoesNotExistError(Exception):
     id: str
+    type: str
 
     def get_id(self) -> str:
         return self.id
+
+    def get_type(self) -> str:
+        return self.type
 
 
 class SameWalletTransactionError(Exception):
@@ -33,8 +37,21 @@ class SameWalletTransactionError(Exception):
 
 
 class ConverterError(Exception):
-    def get_err_msg(self) -> str:
+    @staticmethod
+    def get_error_message() -> str:
         return "converter has met an error"
+
+
+@dataclass
+class WrongOwnerError(Exception):
+    owner_id: str
+    wallet_id: str
+
+    def get_owner_id(self) -> str:
+        return self.owner_id
+
+    def get_wallet_id(self) -> str:
+        return self.wallet_id
 
 
 class NoAccessError(Exception):

@@ -1,4 +1,13 @@
 from dataclasses import dataclass
+from typing import Protocol
+
+
+class StatisticsProtocol(Protocol):
+    def get_number_of_transactions(self) -> int:
+        pass
+
+    def get_bitcoin_profit(self) -> float:
+        pass
 
 
 @dataclass

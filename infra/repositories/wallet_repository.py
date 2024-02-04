@@ -1,10 +1,16 @@
 import uuid
 from uuid import UUID
 
-from core.errors import DoesNotExistError, NotEnoughMoneyError, ThreeWalletsError
-from core.transaction import Transaction
-from core.wallet import Wallet
+from core.errors import (
+    DoesNotExistError,
+    NotEnoughMoneyError,
+    ThreeWalletsError,
+    WrongOwnerError,
+)
+from core.transaction import TransactionProtocol
+from core.wallet import Wallet, WalletProtocol
 from infra.repositories.database import DatabaseHandler
+from runner.constants import WALLET_LIMIT
 
 
 class SqlWalletRepository:
@@ -16,7 +22,7 @@ class SqlWalletRepository:
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
 
-    def add(self, wallet: Wallet) -> None:
+    def add(self, wallet: WalletProtocol) -> None:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -24,7 +30,7 @@ class SqlWalletRepository:
                 f"WHERE owner_id = '{wallet.get_owner_id()}'"
             )
             elems = cursor.fetchall()
-            if len(elems) == 3:
+            if len(elems) == WALLET_LIMIT:
                 raise ThreeWalletsError
             else:
                 query = f"INSERT INTO {self.table_name} VALUES (?, ?, ?)"
@@ -38,7 +44,7 @@ class SqlWalletRepository:
                 )
                 connection.commit()
 
-    def read_with_wallet_id(self, wallet_id: UUID) -> Wallet:
+    def read_with_wallet_id(self, wallet_id: UUID) -> WalletProtocol:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -46,11 +52,11 @@ class SqlWalletRepository:
             )
             values = cursor.fetchone()
             if values is None:
-                raise DoesNotExistError(str(wallet_id))
+                raise DoesNotExistError(str(wallet_id), "Wallet")
             else:
                 return Wallet(UUID(values[1]), values[2], UUID(values[0]))
 
-    def read_with_user_id(self, user_id: UUID) -> list[Wallet]:
+    def read_with_user_id(self, user_id: UUID) -> list[WalletProtocol]:
         with self.database.connect() as connection:
             cursor = connection.cursor()
             cursor.execute(
@@ -60,7 +66,7 @@ class SqlWalletRepository:
             if len(values) == 0:
                 return []
             else:
-                result = [
+                result: list[WalletProtocol] = [
                     Wallet(
                         uuid.UUID(value[1]),
                         value[2],
@@ -84,15 +90,15 @@ class SqlWalletRepository:
             )
             value2 = cursor.fetchone()
             if value1 is None:
-                raise DoesNotExistError(str(wallet_id1))
+                raise DoesNotExistError(str(wallet_id1), "Wallet")
             elif value2 is None:
-                raise DoesNotExistError(str(wallet_id2))
+                raise DoesNotExistError(str(wallet_id2), "Wallet")
             elif value1[0] == value2[0]:
                 return True
             else:
                 return False
 
-    def make_transaction(self, transaction: Transaction) -> None:
+    def make_transaction(self, transaction: TransactionProtocol) -> None:
         wallet1_id = transaction.get_to_id()
         wallet2_id = transaction.get_from_id()
         with self.database.connect() as connection:
@@ -108,19 +114,37 @@ class SqlWalletRepository:
             )
             value2 = cursor.fetchone()
             if value1 is None:
-                raise DoesNotExistError(str(wallet1_id))
+                raise DoesNotExistError(str(wallet1_id), "Wallet")
             if value2 is None:
-                raise DoesNotExistError(str(wallet2_id))
+                raise DoesNotExistError(str(wallet2_id), "Wallet")
             if value1[2] < transaction.get_bitcoin_amount():
                 raise NotEnoughMoneyError
             cursor.execute(
                 f"UPDATE {self.table_name} SET balance = "
-                f"{transaction.get_bitcoin_amount() + value1[2]}"
-                f" WHERE wallet_id = '{value1[0][0]}'"
+                f"{value1[2] + transaction.get_bitcoin_amount()}"
+                f" WHERE wallet_id = '{wallet1_id}'"
+            )
+            new_balance = (
+                value2[2]
+                - transaction.get_bitcoin_amount()
+                - transaction.get_bitcoin_fee()
             )
             cursor.execute(
                 f"UPDATE {self.table_name} SET balance = "
-                f"{value2[2] - transaction.get_bitcoin_amount()}"
-                f" WHERE wallet_id = '{value2[0][0]}'"
+                f"{new_balance}"
+                f" WHERE wallet_id = '{wallet2_id}'"
             )
             connection.commit()
+
+    def wallet_belongs_to_owner(self, owner_id: UUID, wallet_id: UUID) -> None:
+        with self.database.connect() as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                f"SELECT owner_id FROM {self.table_name}"
+                + f" WHERE wallet_id = '{wallet_id}'"
+            )
+            values = cursor.fetchone()
+            if values is None:
+                raise DoesNotExistError(str(wallet_id), "Wallet")
+            if str(values[0]) != str(owner_id):
+                raise WrongOwnerError(str(owner_id), str(wallet_id))
