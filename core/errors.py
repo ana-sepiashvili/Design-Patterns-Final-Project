@@ -29,13 +29,6 @@ class SameWalletTransactionError(Exception):
     pass
 
 
-# class NoTransactionsError(Exception):
-#     id: str
-#
-#     def get_id(self) -> str:
-#         return self.id
-
-
 class ConverterError(Exception):
     @staticmethod
     def get_error_message() -> str:
