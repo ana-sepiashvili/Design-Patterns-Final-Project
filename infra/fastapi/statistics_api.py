@@ -30,7 +30,7 @@ def get_statistics(
     api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     try:
-        statistic = statistics.read_statistics(api_key)
+        statistic = statistics.read(api_key)
         return {"statistics": statistic}
     except NoAccessError:
         return JSONResponse(

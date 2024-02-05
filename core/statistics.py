@@ -24,5 +24,5 @@ class Statistics:
 
 
 class StatisticsRepository(Protocol):
-    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
+    def read(self, admin_key: UUID) -> StatisticsProtocol:
         pass

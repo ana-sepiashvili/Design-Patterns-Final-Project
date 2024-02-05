@@ -12,7 +12,7 @@ class SqlStatisticsRepository:
         self.table_name = table
         self.columns = vals
 
-    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
+    def read(self, admin_key: UUID) -> StatisticsProtocol:
         if str(admin_key) != ADMIN_API_KEY:
             raise NoAccessError(str(admin_key))
 

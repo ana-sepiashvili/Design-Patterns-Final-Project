@@ -65,20 +65,19 @@ def make_transaction(
             args["from_id"], args["to_id"], args["bitcoin_amount"]
         )
         wallets.make_transaction(transaction)
-        try:
-            transactions.add(transaction)
-            return {"transaction": transaction}
-        except SameWalletTransactionError:
-            wallet_id = args["from_id"]
-            return JSONResponse(
-                status_code=400,
-                content={
-                    "error": {
-                        "message": f"You cannot transfer from wallet"
-                        f" with id<{wallet_id}> to itself."
-                    }
-                },
-            )
+        transactions.add(transaction)
+        return {"transaction": transaction}
+    except SameWalletTransactionError:
+        wallet_id = args["from_id"]
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": {
+                    "message": f"You cannot transfer from wallet"
+                    f" with id<{wallet_id}> to itself."
+                }
+            },
+        )
 
     except DoesNotExistError as e:
         message = {"message": f"{e.get_type()} with id<{e.get_id()}> does not exist."}

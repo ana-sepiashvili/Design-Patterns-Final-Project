@@ -6,7 +6,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from core.constants import WALLET_LIMIT
-from core.errors import DoesNotExistError, ThreeWalletsError, WrongOwnerError
+from core.errors import (
+    ConverterError,
+    DoesNotExistError,
+    ThreeWalletsError,
+    WrongOwnerError,
+)
 from core.wallet import Wallet
 from infra.converter import btc_to_usd
 from infra.fastapi.dependables import (
@@ -50,6 +55,12 @@ def create_wallet(
         users.read(api_key)
         wallet = Wallet(owner_id=api_key)
         wallets.add(wallet)
+        result = {
+            "wallet_id": str(wallet.get_id()),
+            "balance_btc": wallet.get_bitcoin_balance(),
+            "balance_usd": btc_to_usd(wallet.get_bitcoin_balance()),
+        }
+        return {"wallet": result}
     except ThreeWalletsError:
         err_msg = f"User with id<{api_key}> already has {WALLET_LIMIT} wallets."
         message = {"message": err_msg}
@@ -66,25 +77,27 @@ def create_wallet(
             status_code=400,
             content=content,
         )
-    result = {
-        "wallet_id": str(wallet.get_id()),
-        "balance_btc": wallet.get_bitcoin_balance(),
-        "balance_usd": btc_to_usd(wallet.get_bitcoin_balance()),
-    }
-    return {"wallet": result}
+
+    except ConverterError as e:
+        message = {"message": e.get_error_message()}
+        content = {"error": message}
+        return JSONResponse(
+            status_code=599,
+            content=content,
+        )
 
 
-@wallet_api.get("/wallets/{wallet_id}", status_code=200, response_model=WalletResp)
+@wallet_api.get("/wallets/{address}", status_code=200, response_model=WalletResp)
 def get_wallet(
-    wallet_id: UUID,
+    address: UUID,
     wallets: WalletRepositoryDependable,
     users: UserRepositoryDependable,
     api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     try:
         users.read(api_key)
-        wallet = wallets.read_with_wallet_id(wallet_id)
-        wallets.wallet_belongs_to_owner(api_key, wallet_id)
+        wallet = wallets.read_with_wallet_id(address)
+        wallets.wallet_belongs_to_owner(api_key, address)
         result = {
             "wallet_id": str(wallet.get_id()),
             "balance_btc": wallet.get_bitcoin_balance(),
@@ -109,25 +122,33 @@ def get_wallet(
             content=content,
         )
 
+    except ConverterError as e:
+        message = {"message": e.get_error_message()}
+        content = {"error": message}
+        return JSONResponse(
+            status_code=599,
+            content=content,
+        )
+
 
 @wallet_api.get(
-    "/wallets/{wallet_id}/transactions",
+    "/wallets/{address}/transactions",
     status_code=200,
     response_model=TransactionListResp,
 )
 def get_wallet_transactions(
-    wallet_id: UUID,
+    address: UUID,
     wallets: WalletRepositoryDependable,
     users: UserRepositoryDependable,
     transactions: TransactionRepositoryDependable,
     api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
+    result = []
     try:
         users.read(api_key)
-        wallets.wallet_belongs_to_owner(api_key, wallet_id)
-        wallets.read_with_wallet_id(wallet_id)
-        transactions_list = transactions.read_wallet_transactions(wallet_id)
-        result = []
+        wallets.wallet_belongs_to_owner(api_key, address)
+        wallets.read_with_wallet_id(address)
+        transactions_list = transactions.read_wallet_transactions(address)
         for transaction in transactions_list:
             result.append(
                 {
@@ -139,6 +160,7 @@ def get_wallet_transactions(
                 }
             )
         return {"transactions": result}
+
     except DoesNotExistError as e:
         message = {"message": f"{e.get_type()} with id<{e.get_id()}> does not exist."}
         content = {"error": message}
@@ -155,5 +177,13 @@ def get_wallet_transactions(
         content = {"error": message}
         return JSONResponse(
             status_code=400,
+            content=content,
+        )
+
+    except ConverterError as e:
+        message = {"message": e.get_error_message()}
+        content = {"error": message}
+        return JSONResponse(
+            status_code=599,
             content=content,
         )
