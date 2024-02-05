@@ -3,8 +3,6 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from core.statistics import StatisticsProtocol
-
 
 class TransactionProtocol(Protocol):
     def get_id(self) -> UUID:

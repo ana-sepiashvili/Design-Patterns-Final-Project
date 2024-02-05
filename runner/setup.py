@@ -5,6 +5,7 @@ from infra.fastapi.transaction_api import transaction_api
 from infra.fastapi.user_api import user_api
 from infra.fastapi.wallet_api import wallet_api
 from infra.repositories.database import DatabaseHandler
+from infra.repositories.statistics_repository import SqlStatisticsRepository
 from infra.repositories.transaction_repository import SqlTransactionRepository
 from infra.repositories.user_repository import SqlUserRepository
 from infra.repositories.wallet_repository import SqlWalletRepository
@@ -35,5 +36,7 @@ def init_app(db_name: str) -> FastAPI:
     app.state.transactions = SqlTransactionRepository(
         db, TRANSACTIONS_TABLE_NAME, TRANSACTIONS_TABLE_COLUMNS
     )
-
+    app.state.statistics = SqlStatisticsRepository(
+        db, TRANSACTIONS_TABLE_NAME, TRANSACTIONS_TABLE_COLUMNS
+    )
     return app

@@ -25,4 +25,5 @@ class SqlStatisticsRepository:
             profit = 0.0
             if n_transactions != 0:
                 profit = values[1]
-            return Statistics(n_transactions, profit)
+            result: StatisticsProtocol = Statistics(n_transactions, profit)
+            return result

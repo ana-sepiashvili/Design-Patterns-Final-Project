@@ -6,7 +6,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from core.errors import NoAccessError
-from infra.fastapi.dependables import TransactionRepositoryDependable
+from infra.fastapi.dependables import StatisticsRepositoryDependable
+
 
 statistics_api = APIRouter(tags=["Statistics"])
 
@@ -26,11 +27,11 @@ class StatisticsItemEnvelope(BaseModel):
     response_model=StatisticsItemEnvelope,
 )
 def get_statistics(
-    api_key: UUID, transactions: TransactionRepositoryDependable
+    api_key: UUID, statistics: StatisticsRepositoryDependable
 ) -> dict[str, Any] | JSONResponse:
     try:
-        statistics = transactions.read_statistics(api_key)
-        return {"statistics": statistics}
+        statistic = statistics.read_statistics(api_key)
+        return {"statistics": statistic}
     except NoAccessError:
         return JSONResponse(
             status_code=403,

@@ -1,11 +1,9 @@
 import uuid
 from uuid import UUID
 
-from core.errors import NoAccessError, SameWalletTransactionError
-from core.statistics import Statistics, StatisticsProtocol
+from core.errors import SameWalletTransactionError
 from core.transaction import Transaction, TransactionProtocol
 from infra.repositories.database import DatabaseHandler
-from core.constants import ADMIN_API_KEY
 
 
 class SqlTransactionRepository:
@@ -47,7 +45,6 @@ class SqlTransactionRepository:
             )
             values = cursor.fetchall()
             if len(values) == 0:
-                # raise NoTransactionsError(str(wallet_id))
                 return []
             else:
                 result: list[TransactionProtocol] = [
