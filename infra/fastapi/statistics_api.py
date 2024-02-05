@@ -1,7 +1,7 @@
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -22,12 +22,13 @@ class StatisticsItemEnvelope(BaseModel):
 
 
 @statistics_api.get(
-    "/statistics/{api_key}",
+    "/statistics",
     status_code=200,
     response_model=StatisticsItemEnvelope,
 )
 def get_statistics(
-    api_key: UUID, statistics: StatisticsRepositoryDependable
+    statistics: StatisticsRepositoryDependable,
+    api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     try:
         statistic = statistics.read_statistics(api_key)
