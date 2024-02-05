@@ -4,7 +4,7 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
-from runner.constants import (
+from core.constants import (
     ADMIN_API_KEY,
     TEST_DATABASE_NAME,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,

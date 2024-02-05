@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.errors import ConverterError
-from runner.constants import (
+from core.constants import (
     DEFAULT_BALANCE,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
     TEST_USER1_ID,

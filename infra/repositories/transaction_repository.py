@@ -5,7 +5,7 @@ from core.errors import NoAccessError, SameWalletTransactionError
 from core.statistics import Statistics, StatisticsProtocol
 from core.transaction import Transaction, TransactionProtocol
 from infra.repositories.database import DatabaseHandler
-from runner.constants import ADMIN_API_KEY
+from core.constants import ADMIN_API_KEY
 
 
 class SqlTransactionRepository:
@@ -13,7 +13,6 @@ class SqlTransactionRepository:
         self.database = database
         self.table_name = table_name
         self.columns = columns
-        self.create()
 
     def create(self) -> None:
         self.database.create_table(self.table_name, self.columns)
@@ -62,18 +61,3 @@ class SqlTransactionRepository:
                     for value in values
                 ]
                 return result
-
-    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
-        if str(admin_key) != ADMIN_API_KEY:
-            raise NoAccessError(str(admin_key))
-
-        with self.database.connect() as connection:
-            cursor = connection.cursor()
-            cursor.execute(f"SELECT COUNT(*), SUM(bitcoin_fee) FROM {self.table_name}")
-
-            values = cursor.fetchone()
-            n_transactions = values[0]
-            profit = 0.0
-            if n_transactions != 0:
-                profit = values[1]
-            return Statistics(n_transactions, profit)

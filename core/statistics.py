@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Protocol
+from uuid import UUID
 
 
 class StatisticsProtocol(Protocol):
@@ -20,3 +21,8 @@ class Statistics:
 
     def get_bitcoin_profit(self) -> float:
         return self.bitcoin_profit
+
+
+class StatisticsRepository(Protocol):
+    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
+        pass

@@ -59,6 +59,3 @@ class TransactionRepository(Protocol):
         self, wallet_id: uuid.UUID
     ) -> list[TransactionProtocol]:
         pass
-
-    def read_statistics(self, admin_key: UUID) -> StatisticsProtocol:
-        pass

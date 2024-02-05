@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 import pytest
 from starlette.testclient import TestClient
 
-from runner.constants import (
+from core.constants import (
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
     TEST_USER1_ID,
     TEST_USER1_WALLET1,

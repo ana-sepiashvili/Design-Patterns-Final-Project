@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from tests.fake import Fake
-from runner.constants import TEST_DATABASE_NAME
+from core.constants import TEST_DATABASE_NAME
 from runner.setup import init_app
 from runner.setup_database import create_database
 

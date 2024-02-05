@@ -13,7 +13,7 @@ from infra.fastapi.dependables import (
     UserRepositoryDependable,
     WalletRepositoryDependable,
 )
-from runner.constants import WALLET_LIMIT
+from core.constants import WALLET_LIMIT
 
 wallet_api = APIRouter(tags=["Wallets"])
 

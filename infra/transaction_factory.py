@@ -3,7 +3,7 @@ from uuid import UUID
 
 from core.transaction import Transaction, TransactionProtocol
 from core.wallet import WalletRepository
-from runner.constants import TRANSACTION_FEE
+from core.constants import TRANSACTION_FEE
 
 
 @dataclass

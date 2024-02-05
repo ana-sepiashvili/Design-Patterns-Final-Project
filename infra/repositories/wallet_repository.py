@@ -10,7 +10,7 @@ from core.errors import (
 from core.transaction import TransactionProtocol
 from core.wallet import Wallet, WalletProtocol
 from infra.repositories.database import DatabaseHandler
-from runner.constants import WALLET_LIMIT
+from core.constants import WALLET_LIMIT
 
 
 class SqlWalletRepository:

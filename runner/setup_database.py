@@ -6,7 +6,7 @@ from infra.repositories.database import DatabaseHandler
 from infra.repositories.transaction_repository import SqlTransactionRepository
 from infra.repositories.user_repository import SqlUserRepository
 from infra.repositories.wallet_repository import SqlWalletRepository
-from runner.constants import (
+from core.constants import (
     DATABASE_NAME,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
     TEST_USER1_EMAIL,

@@ -3,7 +3,7 @@ from typing import Protocol
 from uuid import UUID, uuid4
 
 from core.transaction import TransactionProtocol
-from runner.constants import DEFAULT_BALANCE
+from core.constants import DEFAULT_BALANCE
 
 
 class WalletProtocol(Protocol):
