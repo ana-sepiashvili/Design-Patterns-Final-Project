@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from core.constants import TRANSACTION_FEE
 from core.transaction import Transaction, TransactionProtocol
 from core.wallet import WalletRepository
-from core.constants import TRANSACTION_FEE
 
 
 @dataclass

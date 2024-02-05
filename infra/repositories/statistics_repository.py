@@ -2,7 +2,7 @@ from uuid import UUID
 
 from core.constants import ADMIN_API_KEY
 from core.errors import NoAccessError
-from core.statistics import StatisticsProtocol, Statistics
+from core.statistics import Statistics, StatisticsProtocol
 from infra.repositories.database import DatabaseHandler
 
 

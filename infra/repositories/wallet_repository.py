@@ -1,6 +1,7 @@
 import uuid
 from uuid import UUID
 
+from core.constants import WALLET_LIMIT
 from core.errors import (
     DoesNotExistError,
     NotEnoughMoneyError,
@@ -10,7 +11,6 @@ from core.errors import (
 from core.transaction import TransactionProtocol
 from core.wallet import Wallet, WalletProtocol
 from infra.repositories.database import DatabaseHandler
-from core.constants import WALLET_LIMIT
 
 
 class SqlWalletRepository:
@@ -39,7 +39,7 @@ class SqlWalletRepository:
                     (
                         str(wallet.get_id()),
                         str(wallet.get_owner_id()),
-                        wallet.get_balance(),
+                        wallet.get_bitcoin_balance(),
                     ),
                 )
                 connection.commit()
@@ -120,7 +120,7 @@ class SqlWalletRepository:
             if value1[2] < transaction.get_bitcoin_amount():
                 raise NotEnoughMoneyError
             cursor.execute(
-                f"UPDATE {self.table_name} SET balance = "
+                f"UPDATE {self.table_name} SET bitcoin_balance = "
                 f"{value1[2] + transaction.get_bitcoin_amount()}"
                 f" WHERE wallet_id = '{wallet1_id}'"
             )
@@ -130,7 +130,7 @@ class SqlWalletRepository:
                 - transaction.get_bitcoin_fee()
             )
             cursor.execute(
-                f"UPDATE {self.table_name} SET balance = "
+                f"UPDATE {self.table_name} SET bitcoin_balance = "
                 f"{new_balance}"
                 f" WHERE wallet_id = '{wallet2_id}'"
             )

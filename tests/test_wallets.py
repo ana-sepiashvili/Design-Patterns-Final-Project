@@ -5,7 +5,6 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from core.errors import ConverterError
 from core.constants import (
     DEFAULT_BALANCE,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
@@ -15,6 +14,7 @@ from core.constants import (
     TEST_USER2_WALLET,
     TRANSACTION_FEE,
 )
+from core.errors import ConverterError
 from runner.setup import init_app
 from runner.setup_database import create_database
 from tests.fake import Fake
@@ -134,7 +134,9 @@ def test_should_get_transactions(client: TestClient) -> None:
             "bitcoin_amount": 0.2,
         }
         fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
-        client.post(f"/transactions/{uuid.UUID(owner1_id)}", json=fake_transaction)
+        client.post(
+            "/transactions", json=fake_transaction, headers={"api_key": TEST_USER1_ID}
+        )
         response = client.get(
             f"/wallets/{wallet1_id}/transactions",
             headers={"api_key": owner1_id},
@@ -166,7 +168,9 @@ def test_transaction_should_reflect_on_wallet(client: TestClient) -> None:
             "bitcoin_amount": 0.2,
         }
         fake_transaction = Fake().transaction_for_wallet(fake_trans_dict)
-        client.post(f"/transactions/{uuid.UUID(owner1_id)}", json=fake_transaction)
+        client.post(
+            "/transactions", json=fake_transaction, headers={"api_key": owner1_id}
+        )
         response = client.get(
             f"/wallets/{wallet1_id}",
             headers={"api_key": owner1_id},
@@ -242,11 +246,11 @@ def test_should_update_wallet_including_fee_after_transaction() -> None:
         "bitcoin_amount": 0.3,
         "bitcoin_fee": 0.0,
     }
-    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict)
-
-    response = client.get(
-        f"/wallets/{TEST_USER1_WALLET1}", headers={"api_key": TEST_USER1_ID}
+    client.post(
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
     )
+
+    client.get(f"/wallets/{TEST_USER1_WALLET1}", headers={"api_key": TEST_USER1_ID})
 
     response = client.get(
         f"/wallets/{TEST_USER2_WALLET}", headers={"api_key": TEST_USER2_ID}

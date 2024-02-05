@@ -1,7 +1,7 @@
 import requests
 
-from core.errors import ConverterError
 from core.constants import CONVERSION_API_LINK
+from core.errors import ConverterError
 
 
 def btc_to_usd(btc: float) -> float:

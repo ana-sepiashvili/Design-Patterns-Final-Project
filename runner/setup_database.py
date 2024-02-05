@@ -1,11 +1,5 @@
 import uuid
 
-from core.user import User
-from core.wallet import Wallet
-from infra.repositories.database import DatabaseHandler
-from infra.repositories.transaction_repository import SqlTransactionRepository
-from infra.repositories.user_repository import SqlUserRepository
-from infra.repositories.wallet_repository import SqlWalletRepository
 from core.constants import (
     DATABASE_NAME,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
@@ -23,6 +17,12 @@ from core.constants import (
     WALLETS_TABLE_COLUMNS,
     WALLETS_TABLE_NAME,
 )
+from core.user import User
+from core.wallet import Wallet
+from infra.repositories.database import DatabaseHandler
+from infra.repositories.transaction_repository import SqlTransactionRepository
+from infra.repositories.user_repository import SqlUserRepository
+from infra.repositories.wallet_repository import SqlWalletRepository
 
 
 def create_database(db_name: str) -> None:

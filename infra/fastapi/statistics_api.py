@@ -8,7 +8,6 @@ from pydantic import BaseModel
 from core.errors import NoAccessError
 from infra.fastapi.dependables import StatisticsRepositoryDependable
 
-
 statistics_api = APIRouter(tags=["Statistics"])
 
 

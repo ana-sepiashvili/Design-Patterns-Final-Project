@@ -5,6 +5,7 @@ from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from core.constants import WALLET_LIMIT
 from core.errors import DoesNotExistError, ThreeWalletsError, WrongOwnerError
 from core.wallet import Wallet
 from infra.converter import btc_to_usd
@@ -13,7 +14,6 @@ from infra.fastapi.dependables import (
     UserRepositoryDependable,
     WalletRepositoryDependable,
 )
-from core.constants import WALLET_LIMIT
 
 wallet_api = APIRouter(tags=["Wallets"])
 
@@ -68,8 +68,8 @@ def create_wallet(
         )
     result = {
         "wallet_id": str(wallet.get_id()),
-        "balance_btc": wallet.get_balance(),
-        "balance_usd": btc_to_usd(wallet.get_balance()),
+        "balance_btc": wallet.get_bitcoin_balance(),
+        "balance_usd": btc_to_usd(wallet.get_bitcoin_balance()),
     }
     return {"wallet": result}
 
@@ -87,8 +87,8 @@ def get_wallet(
         wallets.wallet_belongs_to_owner(api_key, wallet_id)
         result = {
             "wallet_id": str(wallet.get_id()),
-            "balance_btc": wallet.get_balance(),
-            "balance_usd": btc_to_usd(wallet.get_balance()),
+            "balance_btc": wallet.get_bitcoin_balance(),
+            "balance_usd": btc_to_usd(wallet.get_bitcoin_balance()),
         }
         return {"wallet": result}
     except DoesNotExistError as e:

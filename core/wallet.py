@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from core.transaction import TransactionProtocol
 from core.constants import DEFAULT_BALANCE
+from core.transaction import TransactionProtocol
 
 
 class WalletProtocol(Protocol):
@@ -13,14 +13,14 @@ class WalletProtocol(Protocol):
     def get_id(self) -> UUID:
         pass
 
-    def get_balance(self) -> float:
+    def get_bitcoin_balance(self) -> float:
         pass
 
 
 @dataclass
 class Wallet:
     owner_id: UUID
-    balance: float = DEFAULT_BALANCE
+    bitcoin_balance: float = DEFAULT_BALANCE
 
     id: UUID = field(default_factory=uuid4)
 
@@ -30,8 +30,8 @@ class Wallet:
     def get_id(self) -> UUID:
         return self.id
 
-    def get_balance(self) -> float:
-        return self.balance
+    def get_bitcoin_balance(self) -> float:
+        return self.bitcoin_balance
 
 
 class WalletRepository(Protocol):
