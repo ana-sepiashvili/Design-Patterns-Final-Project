@@ -1,7 +1,7 @@
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from pydantic import BaseModel
 from starlette.responses import JSONResponse
 
@@ -47,14 +47,14 @@ class TransactionListEnvelope(BaseModel):
 
 
 @transaction_api.post(
-    "/transactions/{api_key}", status_code=201, response_model=TransactionItemEnvelope
+    "/transactions", status_code=201, response_model=TransactionItemEnvelope
 )
 def make_transaction(
-    api_key: UUID,
     request: MakeTransactionRequest,
     transactions: TransactionRepositoryDependable,
     wallets: WalletRepositoryDependable,
     users: UserRepositoryDependable,
+    api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     args = request.model_dump()
     try:
@@ -101,13 +101,13 @@ def make_transaction(
 
 
 @transaction_api.get(
-    "/transactions/{api_key}", status_code=200, response_model=TransactionListEnvelope
+    "/transactions", status_code=200, response_model=TransactionListEnvelope
 )
 def read_user_transactions(
-    api_key: UUID,
     wallets: WalletRepositoryDependable,
     transactions: TransactionRepositoryDependable,
     users: UserRepositoryDependable,
+    api_key: UUID = Header(alias="api_key"),
 ) -> dict[str, Any] | JSONResponse:
     try:
         users.read(api_key)

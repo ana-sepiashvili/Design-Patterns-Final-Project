@@ -1,6 +1,5 @@
-import uuid
 from unittest.mock import ANY
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from starlette.testclient import TestClient
@@ -31,7 +30,7 @@ def test_should_create(client: TestClient) -> None:
         "bitcoin_fee": 0.0,
     }
     response = client.post(
-        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
     )
 
     assert response.status_code == 201
@@ -45,7 +44,7 @@ def test_should_create_with_fee(client: TestClient) -> None:
         "bitcoin_amount": 0.3,
     }
     response = client.post(
-        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
     )
 
     assert response.status_code == 201
@@ -68,7 +67,7 @@ def test_should_not_create_with_unknown_wallet(client: TestClient) -> None:
         "bitcoin_amount": 0.3,
     }
     response = client.post(
-        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
     )
 
     assert response.status_code == 404
@@ -84,7 +83,7 @@ def test_should_not_create_with_wrong_owner(client: TestClient) -> None:
         "bitcoin_amount": 0.3,
     }
     response = client.post(
-        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
     )
 
     assert response.status_code == 400
@@ -103,7 +102,7 @@ def test_should_not_create_with_same_wallet(client: TestClient) -> None:
         "bitcoin_amount": 0.3,
     }
     response = client.post(
-        f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
     )
 
     assert response.status_code == 400
@@ -116,7 +115,7 @@ def test_should_not_create_with_same_wallet(client: TestClient) -> None:
 
 
 def test_user_transactions_on_empty(client: TestClient) -> None:
-    response = client.get(f"/transactions/{UUID(TEST_USER1_ID)}")
+    response = client.get("/transactions", headers={"api_key": TEST_USER1_ID})
 
     assert response.status_code == 200
     assert response.json() == {"transactions": []}
@@ -128,8 +127,10 @@ def test_get_user_transactions(client: TestClient) -> None:
         "to_id": TEST_USER2_WALLET,
         "bitcoin_amount": 0.3,
     }
-    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict)
-    response = client.get(f"/transactions/{UUID(TEST_USER1_ID)}")
+    client.post(
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
+    )
+    response = client.get("/transactions", headers={"api_key": TEST_USER1_ID})
 
     assert response.status_code == 200
     assert response.json() == {
@@ -152,8 +153,10 @@ def test_should_not_get_unknown_user_transactions(client: TestClient) -> None:
         "to_id": str(uuid4()),
         "bitcoin_amount": 0.3,
     }
-    client.post(f"/transactions/{uuid.UUID(TEST_USER1_ID)}", json=fake_trans_dict)
-    response = client.get(f"/transactions/{UUID(unknown_id)}")
+    client.post(
+        "/transactions", json=fake_trans_dict, headers={"api_key": TEST_USER1_ID}
+    )
+    response = client.get("/transactions", headers={"api_key": unknown_id})
 
     assert response.status_code == 404
     assert response.json() == {
