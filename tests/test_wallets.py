@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from core.constants import (
+    BTC_CHANGE_RANGE,
     DEFAULT_BALANCE,
     TEST_DATABASE_NAME_WITH_USERS_AND_WALLETS,
     TEST_USER1_ID,
@@ -17,6 +18,17 @@ from core.constants import (
 from runner.setup import init_app
 from runner.setup_database import create_database
 from tests.fake import Fake
+
+
+def wallet_dict_comparator(dict1: dict[str, ANY], dict2: dict[str, ANY]) -> bool:
+    result = True
+    dict1 = dict1["wallet"]
+    dict2 = dict2["wallet"]
+    result &= dict1["balance_btc"] == dict2["balance_btc"]
+    actual_usd_balance = int(dict1["balance_usd"])
+    expected_usd_balance_range = dict2["balance_usd"]
+    result &= actual_usd_balance in expected_usd_balance_range
+    return result
 
 
 @pytest.fixture
@@ -36,13 +48,16 @@ def test_should_not_create_for_unknown(client: TestClient) -> None:
 def test_should_create(client: TestClient) -> None:
     response = client.post("/wallets", headers={"api_key": TEST_USER1_ID})
 
+    btc_to_usd = int(response.json()["wallet"]["balance_usd"])
     expected = {
         "wallet_id": ANY,
         "balance_btc": DEFAULT_BALANCE,
-        "balance_usd": ANY,
+        "balance_usd": range(
+            btc_to_usd - BTC_CHANGE_RANGE, btc_to_usd + BTC_CHANGE_RANGE
+        ),
     }
     assert response.status_code == 201
-    assert response.json() == {"wallet": expected}
+    assert wallet_dict_comparator(response.json(), {"wallet": expected})
 
 
 def test_should_not_create_more_than_three(client: TestClient) -> None:
@@ -78,14 +93,15 @@ def test_should_read_own(client: TestClient) -> None:
     wallet_id = uuid.UUID(TEST_USER1_WALLET1)
     response = client.get(f"/wallets/{wallet_id}", headers={"api_key": owner_id})
 
+    btc_to_usd = int(response.json()["wallet"]["balance_usd"])
     expected = {
         "wallet_id": ANY,
         "balance_btc": DEFAULT_BALANCE,
-        "balance_usd": ANY,
+        "balance_usd": range(btc_to_usd - 500, btc_to_usd + 500),
     }
-    print(response.json())
+
     assert response.status_code == 200
-    assert response.json() == {"wallet": expected}
+    assert wallet_dict_comparator(response.json(), {"wallet": expected})
 
 
 def test_should_not_read_others_wallet(client: TestClient) -> None:
@@ -150,13 +166,16 @@ def test_transaction_should_reflect_on_wallet(client: TestClient) -> None:
         f"/wallets/{wallet1_id}",
         headers={"api_key": owner1_id},
     )
+    btc_to_usd = int(response.json()["wallet"]["balance_usd"])
     expected = {
         "balance_btc": 0.7999999999999999,
-        "balance_usd": ANY,
+        "balance_usd": range(
+            btc_to_usd - BTC_CHANGE_RANGE, btc_to_usd + BTC_CHANGE_RANGE
+        ),
         "wallet_id": str(wallet1_id),
     }
     assert response.status_code == 200
-    assert response.json() == {"wallet": expected}
+    assert wallet_dict_comparator(response.json(), {"wallet": expected})
 
 
 def test_should_not_get_transactions_with_fake_key(client: TestClient) -> None:
@@ -220,11 +239,13 @@ def test_should_update_wallet_including_fee_after_transaction() -> None:
         f"/wallets/{TEST_USER2_WALLET}", headers={"api_key": TEST_USER2_ID}
     )
 
-    assert response.status_code == 200
-    assert response.json() == {
-        "wallet": {
-            "wallet_id": TEST_USER2_WALLET,
-            "balance_btc": 1.0 + 0.3 * (1 - TRANSACTION_FEE),
-            "balance_usd": ANY,
-        }
+    btc_to_usd = int(response.json()["wallet"]["balance_usd"])
+    expected = {
+        "wallet_id": TEST_USER2_WALLET,
+        "balance_btc": 1.0 + 0.3 * (1 - TRANSACTION_FEE),
+        "balance_usd": range(
+            btc_to_usd - BTC_CHANGE_RANGE, btc_to_usd + BTC_CHANGE_RANGE
+        ),
     }
+    assert response.status_code == 200
+    assert wallet_dict_comparator(response.json(), {"wallet": expected})
